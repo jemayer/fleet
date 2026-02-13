@@ -85,7 +85,16 @@ class Game {
         );
         break;
       }
-      // Battle, GameOver will be added in Tasks 9-10
+      case STATES.BATTLE:
+        content = display.renderBattle(
+          this.playerBoard,
+          this.enemyBoard,
+          this.cursor,
+          this.message,
+          this.turnCount
+        );
+        break;
+      // GameOver will be added in Task 10
       default:
         content = 'State: ' + this.state + ' (coming soon)';
     }
@@ -192,7 +201,65 @@ class Game {
   }
 
   handleBattle(action) {
-    // TODO: Task 9
+    if (action.action === 'move') {
+      if (action.direction === 'up') this.cursor.row = Math.max(0, this.cursor.row - 1);
+      if (action.direction === 'down') this.cursor.row = Math.min(9, this.cursor.row + 1);
+      if (action.direction === 'left') this.cursor.col = Math.max(0, this.cursor.col - 1);
+      if (action.direction === 'right') this.cursor.col = Math.min(9, this.cursor.col + 1);
+    }
+
+    if (action.action === 'select') {
+      // Player fires at enemy board
+      const result = this.enemyBoard.processShot(this.cursor.row, this.cursor.col);
+
+      if (result.alreadyShot) {
+        this.message = 'Already fired there! Choose another target.';
+        return;
+      }
+
+      this.turnCount++;
+
+      if (result.sunk) {
+        this.message = 'You sunk the ' + result.shipName + '!';
+      } else if (result.hit) {
+        this.message = 'Hit!';
+      } else {
+        this.message = 'Miss!';
+      }
+
+      // Check win
+      if (this.enemyBoard.allShipsSunk()) {
+        this.won = true;
+        this.state = STATES.GAMEOVER;
+        return;
+      }
+
+      // AI turn
+      this.doAiTurn();
+    }
+  }
+
+  doAiTurn() {
+    const target = this.ai.chooseTarget();
+    const result = this.playerBoard.processShot(target.row, target.col);
+    this.ai.recordResult(target.row, target.col, result.hit, result.sunk);
+
+    // Append AI result to message
+    let aiMsg;
+    if (result.sunk) {
+      aiMsg = 'Enemy sunk your ' + result.shipName + '!';
+    } else if (result.hit) {
+      aiMsg = 'Enemy hit your fleet!';
+    } else {
+      aiMsg = 'Enemy missed.';
+    }
+    this.message += '  |  ' + aiMsg;
+
+    // Check loss
+    if (this.playerBoard.allShipsSunk()) {
+      this.won = false;
+      this.state = STATES.GAMEOVER;
+    }
   }
 
   handleGameOver(action) {
