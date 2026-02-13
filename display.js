@@ -347,7 +347,11 @@ function renderGrid(grid, options = {}) {
   const borderColor = showShips ? fgRgb(60, 120, 200) : fgRgb(200, 80, 60);
 
   if (label) {
-    lines.push(C.bright + fgRgb(255, 200, 50) + ' ' + labelEmoji + ' ' + label + r);
+    const gridWidth = 25; // visual width of grid body (border + cells)
+    const labelText = labelEmoji + ' ' + label;
+    const labelW = displayWidth(labelText);
+    const labelPad = Math.max(0, Math.floor((gridWidth - labelW) / 2));
+    lines.push(' '.repeat(labelPad) + C.bright + fgRgb(255, 200, 50) + labelText + r);
   }
 
   // Column headers
@@ -515,11 +519,14 @@ function renderPlacement(board, currentShipName, currentShipSize, cursor, orient
   }
 
   // Render grid with ghost overlay — centered
-  const gridVisualWidth = 26; // "    A B C D E F G H I J" = 24 + border chars
+  const gridVisualWidth = 25; // grid body width (border + cells)
   const placementMargin = Math.max(0, Math.floor((getWidth() - gridVisualWidth) / 2));
   const pm = ' '.repeat(placementMargin);
 
-  lines.push(pm + C.bright + fgRgb(255, 200, 50) + ' ⚓ DEPLOYMENT ZONE' + r);
+  const dzLabel = '⚓ DEPLOYMENT ZONE';
+  const dzLabelW = displayWidth(dzLabel);
+  const dzPad = Math.max(0, Math.floor((gridVisualWidth - dzLabelW) / 2));
+  lines.push(pm + ' '.repeat(dzPad) + C.bright + fgRgb(255, 200, 50) + dzLabel + r);
   const borderClr = fgRgb(60, 120, 200);
   lines.push(pm + borderClr + '    A B C D E F G H I J' + r);
   lines.push(pm + borderClr + '   ┌' + '──'.repeat(10) + '┐' + r);
