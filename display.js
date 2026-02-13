@@ -672,12 +672,15 @@ function renderGameOver(won, stats, playerName, menuIndex, nameEntered) {
   lines.push('');
 
   if (won) {
+    // Explosive victory celebration
+    lines.push(centerText('💥 ⭐ 🎉 ⭐ 💥'));
+    lines.push('');
     const victoryGradient = [
-      fgRgb(0, 255, 100),
-      fgRgb(50, 255, 120),
-      fgRgb(100, 255, 150),
-      fgRgb(50, 255, 120),
-      fgRgb(0, 255, 100),
+      fgRgb(255, 255, 0),
+      fgRgb(255, 220, 0),
+      fgRgb(255, 200, 50),
+      fgRgb(255, 220, 0),
+      fgRgb(255, 255, 0),
     ];
     const victoryArt = [
       '█  █ ███ ████ █████  ██  ███  █   █',
@@ -690,7 +693,13 @@ function renderGameOver(won, stats, playerName, menuIndex, nameEntered) {
       lines.push(centerText(C.bright + victoryGradient[i] + victoryArt[i] + r));
     }
     lines.push('');
-    lines.push(centerText('🏅🏅🏅'));
+    lines.push(centerText('🏆 🎉 ⭐ 🎉 🏆'));
+    lines.push('');
+    lines.push(centerText(
+      C.bright + fgRgb(255, 220, 50) + '★ ★ ★  ' +
+      fgRgb(0, 255, 180) + 'FLEET DESTROYED!' +
+      fgRgb(255, 220, 50) + '  ★ ★ ★' + r
+    ));
   } else {
     const defeatGradient = [
       fgRgb(255, 80, 80),
