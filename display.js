@@ -726,19 +726,30 @@ function renderGameOver(won, stats, playerName, menuIndex, nameEntered) {
   lines.push(centerText(fgRgb(60, 100, 180) + '═'.repeat(50) + r));
   lines.push('');
 
-  // Stats
+  // Stats — two-column table, centered as a block
   const diffLabel = stats.difficulty || 'Unknown';
   lines.push(centerText(C.bright + fgRgb(255, 200, 50) + '📊 GAME STATISTICS 📊' + r));
   lines.push('');
-  lines.push(centerText(
-    fgRgb(200, 210, 220) + '⏱  Turns played:     ' + C.bright + fgRgb(0, 220, 255) + stats.turns + r
-  ));
-  lines.push(centerText(
-    fgRgb(200, 210, 220) + '🚢 Ships remaining:  ' + C.bright + fgRgb(0, 220, 255) + stats.shipsRemaining + r
-  ));
-  lines.push(centerText(
-    fgRgb(200, 210, 220) + '⚙  Difficulty:       ' + C.bright + fgRgb(0, 220, 255) + diffLabel + r
-  ));
+
+  const labelColor = fgRgb(200, 210, 220);
+  const valueColor = C.bright + fgRgb(0, 220, 255);
+  const statRows = [
+    { emoji: '⏱ ', label: 'Turns played:', value: String(stats.turns) },
+    { emoji: '🚢', label: 'Ships remaining:', value: String(stats.shipsRemaining) },
+    { emoji: '⚙ ', label: 'Difficulty:', value: diffLabel },
+  ];
+  const labelWidth = 18; // enough for longest label
+  const valueWidth = 8;  // enough for longest value
+  const blockWidth = 3 + labelWidth + 2 + valueWidth; // emoji+space + label + gap + value
+  const blockMargin = Math.max(0, Math.floor((getWidth() - blockWidth) / 2));
+  const bm = ' '.repeat(blockMargin);
+
+  for (const row of statRows) {
+    const paddedLabel = row.label.padEnd(labelWidth);
+    const paddedValue = row.value.padStart(valueWidth);
+    lines.push(bm + labelColor + row.emoji + ' ' + paddedLabel + r + '  ' + valueColor + paddedValue + r);
+  }
+
   lines.push('');
   lines.push(centerText(fgRgb(60, 100, 180) + '─'.repeat(40) + r));
   lines.push('');
