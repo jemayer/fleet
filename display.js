@@ -57,10 +57,40 @@ function getWidth() {
   return process.stdout.columns || 80;
 }
 
+function getHeight() {
+  return process.stdout.rows || 24;
+}
+
+/**
+ * Measure the visible terminal column width of a string,
+ * accounting for double-width emoji characters.
+ */
+function displayWidth(str) {
+  const stripped = str.replace(/\x1b\[[0-9;]*m/g, '');
+  let width = 0;
+  for (const ch of stripped) {
+    const cp = ch.codePointAt(0);
+    // Common double-width ranges: emoji, misc symbols, dingbats
+    if (cp >= 0x1F000 ||                        // SMP emoji blocks
+        (cp >= 0x2600 && cp <= 0x27BF) ||        // Misc symbols + dingbats
+        (cp >= 0x2B50 && cp <= 0x2B55) ||        // Stars
+        (cp >= 0xFE00 && cp <= 0xFE0F) ||        // Variation selectors (skip)
+        (cp >= 0x200D && cp <= 0x200D)) {         // ZWJ (skip)
+      if (cp >= 0xFE00 || cp === 0x200D) {
+        width += 0; // zero-width joiners and variation selectors
+      } else {
+        width += 2;
+      }
+    } else {
+      width += 1;
+    }
+  }
+  return width;
+}
+
 function centerText(text, width) {
   const w = width || getWidth();
-  const stripped = text.replace(/\x1b\[[0-9;]*m/g, '');
-  const pad = Math.max(0, Math.floor((w - stripped.length) / 2));
+  const pad = Math.max(0, Math.floor((w - displayWidth(text)) / 2));
   return ' '.repeat(pad) + text;
 }
 
@@ -790,17 +820,30 @@ function renderHighscores(scores) {
 function renderQuitConfirm() {
   const C = COLORS;
   const r = C.reset;
-  const lines = [];
+  const bdr = fgRgb(80, 120, 180);
+  const inner = 38;
+  const boxWidth = inner + 2; // +2 for │ borders
+  const margin = Math.max(0, Math.floor((getWidth() - boxWidth) / 2));
+  const m = ' '.repeat(margin);
+  const blank = m + bdr + '│' + r + ' '.repeat(inner) + bdr + '│' + r;
 
+  // Helper: pad colored content to exactly `inner` visible columns
+  function padRow(content) {
+    const vis = displayWidth(content);
+    const pad = Math.max(0, inner - vis);
+    return m + bdr + '│' + r + content + ' '.repeat(pad) + bdr + '│' + r;
+  }
+
+  const lines = [];
   lines.push('');
-  lines.push(centerText(fgRgb(60, 80, 120) + '┌' + '─'.repeat(36) + '┐' + r));
-  lines.push(centerText(fgRgb(60, 80, 120) + '│' + r + '                                    ' + fgRgb(60, 80, 120) + '│' + r));
-  lines.push(centerText(fgRgb(60, 80, 120) + '│' + r + C.bright + fgRgb(255, 200, 50) + '   ⚓ Abandon ship, Captain? ⚓   ' + r + fgRgb(60, 80, 120) + '│' + r));
-  lines.push(centerText(fgRgb(60, 80, 120) + '│' + r + '                                    ' + fgRgb(60, 80, 120) + '│' + r));
-  lines.push(centerText(fgRgb(60, 80, 120) + '│' + r + fgRgb(0, 220, 100) + '     Y' + r + fgRgb(160, 180, 200) + ' = Return to port (menu)    ' + fgRgb(60, 80, 120) + '│' + r));
-  lines.push(centerText(fgRgb(60, 80, 120) + '│' + r + fgRgb(255, 100, 80) + '     Any other key' + r + fgRgb(160, 180, 200) + ' = Stay      ' + fgRgb(60, 80, 120) + '│' + r));
-  lines.push(centerText(fgRgb(60, 80, 120) + '│' + r + '                                    ' + fgRgb(60, 80, 120) + '│' + r));
-  lines.push(centerText(fgRgb(60, 80, 120) + '└' + '─'.repeat(36) + '┘' + r));
+  lines.push(m + bdr + '┌' + '─'.repeat(inner) + '┐' + r);
+  lines.push(blank);
+  lines.push(padRow(C.bright + fgRgb(255, 200, 50) + '     ⚓ Abandon ship, Captain? ⚓     ' + r));
+  lines.push(blank);
+  lines.push(padRow(fgRgb(0, 220, 100) + '       Y' + r + fgRgb(160, 180, 200) + ' = Return to port (menu)' + r));
+  lines.push(padRow(fgRgb(255, 100, 80) + '       Any other key' + r + fgRgb(160, 180, 200) + ' = Stay' + r));
+  lines.push(blank);
+  lines.push(m + bdr + '└' + '─'.repeat(inner) + '┘' + r);
 
   return lines.join('\n');
 }
