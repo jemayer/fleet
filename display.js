@@ -527,6 +527,7 @@ function renderPlacement(board, currentShipName, currentShipSize, cursor, orient
   const dzLabelW = displayWidth(dzLabel);
   const dzPad = Math.max(0, Math.floor((gridVisualWidth - dzLabelW) / 2));
   lines.push(pm + ' '.repeat(dzPad) + C.bright + fgRgb(255, 200, 50) + dzLabel + r);
+  lines.push('');
   const borderClr = fgRgb(60, 120, 200);
   lines.push(pm + borderClr + '    A B C D E F G H I J' + r);
   lines.push(pm + borderClr + '   ┌' + '──'.repeat(10) + '┐' + r);
