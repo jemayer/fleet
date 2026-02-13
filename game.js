@@ -128,7 +128,14 @@ class Game {
       }
     }
     if (this.confirmQuit) {
-      content += '\n' + display.renderQuitConfirm();
+      // Overlay dialog onto last N lines to keep total height stable
+      const dialogStr = display.renderQuitConfirm();
+      const dialogLines = dialogStr.split('\n');
+      const contentLines = content.split('\n');
+      // Replace tail of content with dialog lines (preserve total line count)
+      const replaceCount = Math.min(dialogLines.length, contentLines.length);
+      contentLines.splice(contentLines.length - replaceCount, replaceCount, ...dialogLines);
+      content = contentLines.join('\n');
     }
     display.render(content);
   }
