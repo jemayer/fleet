@@ -45,6 +45,13 @@ class Game {
   }
 
   start() {
+    // Check terminal size before starting
+    const sizeWarning = display.checkTerminalSize();
+    if (sizeWarning) {
+      process.stdout.write(sizeWarning);
+      process.exit(1);
+    }
+
     process.stdout.write(display.hideCursor());
     process.on('exit', () => process.stdout.write(display.showCursor()));
     this.input.start();

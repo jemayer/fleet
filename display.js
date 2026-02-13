@@ -39,8 +39,46 @@ function clearScreen() {
   return '\x1b[2J\x1b[H';
 }
 
+const MIN_COLS = 60;
+const MIN_ROWS = 30;
+
 function render(content) {
-  process.stdout.write(clearScreen() + content);
+  const termHeight = getHeight();
+  const lines = content.split('\n');
+  const contentHeight = lines.length;
+  const topPad = Math.max(0, Math.floor((termHeight - contentHeight) / 2));
+  const padded = '\n'.repeat(topPad) + content;
+  process.stdout.write(clearScreen() + padded);
+}
+
+/**
+ * Check if terminal meets minimum size requirements.
+ * Returns null if OK, or a warning string if too small.
+ */
+function checkTerminalSize() {
+  const cols = getWidth();
+  const rows = getHeight();
+  if (cols >= MIN_COLS && rows >= MIN_ROWS) return null;
+
+  const C = COLORS;
+  const r = C.reset;
+  const lines = [];
+  lines.push('');
+  lines.push(C.bright + fgRgb(255, 80, 80) + '  ⚠  TERMINAL TOO SMALL  ⚠' + r);
+  lines.push('');
+  lines.push(fgRgb(200, 210, 220) + '  Schiffe Versenken requires a minimum terminal size of:' + r);
+  lines.push('');
+  lines.push(C.bright + fgRgb(255, 200, 50) + '    ' + MIN_COLS + ' columns x ' + MIN_ROWS + ' rows' + r);
+  lines.push('');
+  lines.push(fgRgb(200, 210, 220) + '  Your terminal is currently:' + r);
+  lines.push('');
+  const colStatus = cols >= MIN_COLS ? fgRgb(0, 220, 100) : fgRgb(255, 80, 80);
+  const rowStatus = rows >= MIN_ROWS ? fgRgb(0, 220, 100) : fgRgb(255, 80, 80);
+  lines.push('    ' + colStatus + cols + ' columns' + r + fgRgb(100, 130, 160) + ' x ' + r + rowStatus + rows + ' rows' + r);
+  lines.push('');
+  lines.push(fgRgb(160, 180, 200) + '  Please resize your terminal and restart.' + r);
+  lines.push('');
+  return lines.join('\n');
 }
 
 function hideCursor() {
@@ -868,4 +906,5 @@ module.exports = {
   renderGameOver,
   renderHighscores,
   renderQuitConfirm,
+  checkTerminalSize,
 };
