@@ -104,8 +104,6 @@ class Game {
         content = display.renderGameOver(this.won, stats, this.playerName, this.gameOverMenuIndex, this.nameEntered);
         break;
       }
-      default:
-        content = 'State: ' + this.state + ' (coming soon)';
     }
     display.render(content);
   }

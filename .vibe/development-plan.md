@@ -79,11 +79,6 @@ Build a classic Battleship game ("Schiffe versenken") as a Node.js CLI applicati
 - [ ] Beans tickets are created for all planned work items
 
 ### Tasks
-- [ ] Task 7: Game skeleton (game.js — state machine, title, difficulty)
-- [ ] Task 8: Ship placement phase
-- [ ] Task 9: Battle phase (player shooting + AI turns)
-- [ ] Task 10: Game over + highscore integration
-- [ ] Task 11: Polish + README
 
 ### Completed
 - [x] Task 1: Ship module (ship.js + tests) — 9 tests passing
@@ -92,19 +87,25 @@ Build a classic Battleship game ("Schiffe versenken") as a Node.js CLI applicati
 - [x] Task 4: Input module (input.js — keyboard handling)
 - [x] Task 5: Highscore module (highscore.js + tests) — 4 tests passing
 - [x] Task 6: AI module (ai.js + tests) — 11 tests passing (easy/medium/hard)
+- [x] Task 7: Game skeleton (game.js — state machine, title, difficulty)
+- [x] Task 8: Ship placement phase with cursor + rotation
+- [x] Task 9: Battle phase with player shooting + AI turns
+- [x] Task 10: Game over screen, name entry, highscore integration
+- [x] Task 11: README with play instructions and keyboard controls
 
 ## Finalize
 
 ### Phase Entrance Criteria:
-- [ ] All core features are implemented and working
-- [ ] Game is fully playable from start to finish
-- [ ] AI difficulty levels (Easy/Medium/Hard) work correctly
-- [ ] Highscore system persists between sessions
-- [ ] README is written with play instructions and keyboard controls
-- [ ] Git history shows atomic, meaningful commits
+- [x] All core features are implemented and working
+- [x] Game is fully playable from start to finish
+- [x] AI difficulty levels (Easy/Medium/Hard) work correctly
+- [x] Highscore system persists between sessions
+- [x] README is written with play instructions and keyboard controls
+- [x] Git history shows atomic, meaningful commits (13 commits)
 
 ### Tasks
-- [ ] *To be added when this phase becomes active*
+- [ ] Manual playthrough verification
+- [ ] Final commit with updated development plan
 
 ### Completed
 *None yet*
