@@ -46,9 +46,10 @@ function render(content) {
   const termHeight = getHeight();
   const lines = content.split('\n');
   const contentHeight = lines.length;
-  const topPad = Math.max(0, Math.floor((termHeight - contentHeight) / 2));
-  const padded = '\n'.repeat(topPad) + content;
-  process.stdout.write(clearScreen() + padded);
+  const startRow = Math.max(1, Math.floor((termHeight - contentHeight) / 2) + 1);
+  // Use absolute cursor positioning instead of newlines for top padding.
+  // \x1b[2J clears the screen, \x1b[{row};1H moves cursor to target row.
+  process.stdout.write('\x1b[2J' + `\x1b[${startRow};1H` + content);
 }
 
 /**
