@@ -56,7 +56,7 @@
 - Persistent JSON file storage (highscores.json)
 - Tracks: player name, win/loss, turns taken, difficulty level, date
 - Viewable from main menu
-- Sorted by fewest turns, grouped by difficulty
+- Sorted by winners first, then by fewest turns (top 10)
 
 ### 7. Full Keyboard Controls
 - All interaction via keyboard (no mouse, no typed coordinates)
@@ -69,15 +69,15 @@
 
 ## How We Know Version 1 is Done
 
-- [ ] Game launches and shows retro ASCII title screen
-- [ ] Player can select difficulty with keyboard
-- [ ] Player can place all 5 ships using arrow keys + rotate
-- [ ] Battle phase shows side-by-side grids with ship inventories
-- [ ] Player can fire at enemy grid and see hit/miss results
-- [ ] AI opponent fires back with appropriate difficulty behavior
-- [ ] Game detects win/loss and shows game over screen
-- [ ] Highscores save to file and display from main menu
-- [ ] All controls are keyboard-driven (no typing coordinates)
+- [x] Game launches and shows retro ASCII title screen
+- [x] Player can select difficulty with keyboard
+- [x] Player can place all 5 ships using arrow keys + rotate
+- [x] Battle phase shows side-by-side grids with ship inventories
+- [x] Player can fire at enemy grid and see hit/miss results
+- [x] AI opponent fires back with appropriate difficulty behavior
+- [x] Game detects win/loss and shows game over screen
+- [x] Highscores save to file and display from main menu
+- [x] All controls are keyboard-driven (no typing coordinates)
 
 ---
 

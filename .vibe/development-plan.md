@@ -104,11 +104,13 @@ Build a classic Battleship game ("Schiffe versenken") as a Node.js CLI applicati
 - [x] Git history shows atomic, meaningful commits (13 commits)
 
 ### Tasks
-- [ ] Manual playthrough verification
+- [ ] Manual playthrough verification (requires user)
 - [ ] Final commit with updated development plan
 
 ### Completed
-*None yet*
+- [x] Code cleanup — removed dev artifacts (leftover "coming soon" default case)
+- [x] Documentation review — updated architecture.md, requirements.md, design.md to reflect final implementation
+- [x] Final test validation — 36 tests passing across 7 suites
 
 
 

@@ -10,7 +10,7 @@
 
 ### State (Memory)
 The game tracks:
-- **Game state**: which screen/phase is active (title, difficulty, placement, battle, gameover)
+- **Game state**: which screen/phase is active (title, difficulty, placement, battle, gameover, highscores)
 - **Board state**: two 10x10 grids per player (fleet grid + tracking grid)
 - **Ship state**: position, orientation, and hit segments for each of the 5 ships
 - **AI state**: shot history, current hunt targets (for Medium/Hard)
@@ -46,14 +46,20 @@ Full screen redraw approach:
 
 ```
 fleet/
-  +-- game.js        <- Main entry point, state machine, game loop
-  +-- board.js       <- 10x10 grid logic, placement validation, shot processing
-  +-- ship.js        <- Ship definitions (types, sizes), damage tracking
-  +-- ai.js          <- Computer opponent (Easy/Medium/Hard strategies)
-  +-- display.js     <- ANSI rendering, ASCII art, grid drawing, menus
-  +-- input.js       <- Keyboard input handling (raw mode, keypress events)
-  +-- highscore.js   <- Persistent JSON highscore read/write/display
-  +-- README.md      <- How to run, play, and keyboard controls
+  +-- game.js           <- Main entry point, state machine, game loop
+  +-- board.js          <- 10x10 grid logic, placement validation, shot processing
+  +-- ship.js           <- Ship definitions (types, sizes), damage tracking
+  +-- ai.js             <- Computer opponent (Easy/Medium/Hard strategies)
+  +-- display.js        <- ANSI rendering, ASCII art, grid drawing, menus
+  +-- input.js          <- Keyboard input handling (raw mode, keypress events)
+  +-- highscore.js      <- Persistent JSON highscore read/write/display
+  +-- highscores.json   <- Persisted highscore data (created on first save)
+  +-- README.md         <- How to run, play, and keyboard controls
+  +-- tests/
+      +-- ship.test.js      <- 9 tests for Ship module
+      +-- board.test.js     <- 12 tests for Board module
+      +-- ai.test.js        <- 11 tests for AI module
+      +-- highscore.test.js <- 4 tests for Highscore module
 ```
 
 ### Module Responsibilities
@@ -89,7 +95,7 @@ AI State Machine (Medium/Hard):
 
 **display.js**: Pure rendering functions. Takes game state as input, returns strings. No side effects except writing to stdout. Handles ANSI color codes, cursor positioning, screen clearing.
 
-**input.js**: Sets up readline interface in raw mode. Emits semantic events (e.g., 'move', 'fire', 'rotate', 'select', 'back') rather than raw keycodes.
+**input.js**: Sets up readline interface in raw mode. Emits semantic actions (e.g., 'move', 'select', 'rotate', 'back', 'backspace', 'letter', 'number') rather than raw keycodes.
 
 **highscore.js**: Reads/writes `highscores.json`. Methods: `load()`, `save(entry)`, `getFormatted()`. Creates file on first save.
 

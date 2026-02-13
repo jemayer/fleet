@@ -55,7 +55,7 @@
 
 ### game.js — Game Manager
 **Responsibilities:**
-- Owns the state machine (title, difficulty, placement, battle, gameover)
+- Owns the state machine (title, difficulty, placement, battle, gameover, highscores)
 - Coordinates turns between player and AI
 - Orchestrates all other modules
 - Detects win/loss conditions
