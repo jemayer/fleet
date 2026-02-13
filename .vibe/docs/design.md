@@ -64,7 +64,28 @@ fleet/
 
 **ship.js**: Exports ship type definitions (name, size) and a Ship class that tracks position, orientation, and hit state. Methods: `hit(position)`, `isSunk()`, `getSegments()`.
 
-**ai.js**: Exports an AI class constructed with difficulty level. Method: `chooseTarget(shotHistory)` returns coordinates. Internally manages hunt queue for Medium/Hard.
+**ai.js**: Exports an AI class constructed with difficulty level. Method: `chooseTarget()` returns coordinates. Internally manages hunt queue for Medium/Hard.
+
+AI State Machine (Medium/Hard):
+```
+  HUNT mode (default)                 TARGET mode
+  ┌──────────────┐    hit found      ┌──────────────┐
+  │ Pick random  │ ──────────────>   │ Queue adj.   │
+  │ untried cell │                   │ cells, try   │
+  └──────────────┘   <──────────── │ them in order │
+                      queue empty    └──────────────┘
+                      or ship sunk         │
+                                           │ hit again (Hard only)
+                                           v
+                                    ┌──────────────┐
+                                    │ Lock to axis │
+                                    │ (H or V),    │
+                                    │ extend line  │
+                                    └──────────────┘
+```
+- Easy: always HUNT mode (pure random)
+- Medium: HUNT + TARGET (queue adjacent on hit, return to hunt when queue empty)
+- Hard: HUNT + TARGET + axis lock (on 2nd consecutive hit, only target along that axis)
 
 **display.js**: Pure rendering functions. Takes game state as input, returns strings. No side effects except writing to stdout. Handles ANSI color codes, cursor positioning, screen clearing.
 
