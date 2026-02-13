@@ -785,6 +785,26 @@ function renderHighscores(scores) {
   return lines.join('\n');
 }
 
+// ─── Quit Confirmation ──────────────────────────────────────────────────────
+
+function renderQuitConfirm() {
+  const C = COLORS;
+  const r = C.reset;
+  const lines = [];
+
+  lines.push('');
+  lines.push(centerText(fgRgb(60, 80, 120) + '┌' + '─'.repeat(36) + '┐' + r));
+  lines.push(centerText(fgRgb(60, 80, 120) + '│' + r + '                                    ' + fgRgb(60, 80, 120) + '│' + r));
+  lines.push(centerText(fgRgb(60, 80, 120) + '│' + r + C.bright + fgRgb(255, 200, 50) + '   ⚓ Abandon ship, Captain? ⚓   ' + r + fgRgb(60, 80, 120) + '│' + r));
+  lines.push(centerText(fgRgb(60, 80, 120) + '│' + r + '                                    ' + fgRgb(60, 80, 120) + '│' + r));
+  lines.push(centerText(fgRgb(60, 80, 120) + '│' + r + fgRgb(0, 220, 100) + '     Y' + r + fgRgb(160, 180, 200) + ' = Return to port (menu)    ' + fgRgb(60, 80, 120) + '│' + r));
+  lines.push(centerText(fgRgb(60, 80, 120) + '│' + r + fgRgb(255, 100, 80) + '     Any other key' + r + fgRgb(160, 180, 200) + ' = Stay      ' + fgRgb(60, 80, 120) + '│' + r));
+  lines.push(centerText(fgRgb(60, 80, 120) + '│' + r + '                                    ' + fgRgb(60, 80, 120) + '│' + r));
+  lines.push(centerText(fgRgb(60, 80, 120) + '└' + '─'.repeat(36) + '┘' + r));
+
+  return lines.join('\n');
+}
+
 // ─── Exports ─────────────────────────────────────────────────────────────────
 
 module.exports = {
@@ -804,4 +824,5 @@ module.exports = {
   renderBattle,
   renderGameOver,
   renderHighscores,
+  renderQuitConfirm,
 };

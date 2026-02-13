@@ -40,6 +40,8 @@ class Game {
     this.gameOverMenuIndex = 0;
     this.won = false;
     this.nameEntered = false;
+    // Quit confirmation
+    this.confirmQuit = false;
   }
 
   start() {
@@ -51,6 +53,19 @@ class Game {
   }
 
   handleInput(action) {
+    // Quit confirmation intercept
+    if (this.confirmQuit) {
+      if (action.action === 'letter' && action.value === 'y') {
+        this.confirmQuit = false;
+        this.state = STATES.TITLE;
+        this.menuIndex = 0;
+      } else {
+        this.confirmQuit = false;
+      }
+      this.render();
+      return;
+    }
+
     switch (this.state) {
       case STATES.TITLE: this.handleTitle(action); break;
       case STATES.DIFFICULTY: this.handleDifficulty(action); break;
@@ -104,6 +119,9 @@ class Game {
         content = display.renderGameOver(this.won, stats, this.playerName, this.gameOverMenuIndex, this.nameEntered);
         break;
       }
+    }
+    if (this.confirmQuit) {
+      content += '\n' + display.renderQuitConfirm();
     }
     display.render(content);
   }
@@ -203,12 +221,17 @@ class Game {
       // If not placed (invalid position), do nothing — player sees red preview
     }
 
-    if (action.action === 'back') {
-      this.state = STATES.TITLE;
+    if (action.action === 'back' || (action.action === 'letter' && action.value === 'q')) {
+      this.confirmQuit = true;
     }
   }
 
   handleBattle(action) {
+    if (action.action === 'back' || (action.action === 'letter' && action.value === 'q')) {
+      this.confirmQuit = true;
+      return;
+    }
+
     if (action.action === 'move') {
       if (action.direction === 'up') this.cursor.row = Math.max(0, this.cursor.row - 1);
       if (action.direction === 'down') this.cursor.row = Math.min(9, this.cursor.row + 1);
