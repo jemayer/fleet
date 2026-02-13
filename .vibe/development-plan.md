@@ -79,12 +79,6 @@ Build a classic Battleship game ("Schiffe versenken") as a Node.js CLI applicati
 - [ ] Beans tickets are created for all planned work items
 
 ### Tasks
-- [ ] Task 1: Ship module (ship.js + tests)
-- [ ] Task 2: Board module (board.js + tests)
-- [ ] Task 3: Display module (display.js — ANSI rendering)
-- [ ] Task 4: Input module (input.js — keyboard handling)
-- [ ] Task 5: Highscore module (highscore.js + tests)
-- [ ] Task 6: AI module (ai.js + tests — easy/medium/hard)
 - [ ] Task 7: Game skeleton (game.js — state machine, title, difficulty)
 - [ ] Task 8: Ship placement phase
 - [ ] Task 9: Battle phase (player shooting + AI turns)
@@ -92,7 +86,12 @@ Build a classic Battleship game ("Schiffe versenken") as a Node.js CLI applicati
 - [ ] Task 11: Polish + README
 
 ### Completed
-*None yet*
+- [x] Task 1: Ship module (ship.js + tests) — 9 tests passing
+- [x] Task 2: Board module (board.js + tests) — 12 tests passing
+- [x] Task 3: Display module (display.js — ANSI rendering, 661 lines)
+- [x] Task 4: Input module (input.js — keyboard handling)
+- [x] Task 5: Highscore module (highscore.js + tests) — 4 tests passing
+- [x] Task 6: AI module (ai.js + tests) — 11 tests passing (easy/medium/hard)
 
 ## Finalize
 
