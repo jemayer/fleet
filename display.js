@@ -495,8 +495,7 @@ function renderPlacement(board, currentShipName, currentShipSize, cursor, orient
   const lines = [];
 
   lines.push(renderMiniTitle());
-  lines.push(centerText(C.bright + fgRgb(255, 200, 50) + '🚢 PLACE YOUR SHIPS 🚢' + r));
-  lines.push('');
+  lines.push(centerText(C.bright + fgRgb(255, 200, 50) + '🚢 PLACE YOUR SHIPS! 🚢' + r));
 
   // Build a display grid with ghost ship preview
   const grid = board.getGrid();
@@ -523,7 +522,7 @@ function renderPlacement(board, currentShipName, currentShipSize, cursor, orient
   const placementMargin = Math.max(0, Math.floor((getWidth() - gridVisualWidth) / 2));
   const pm = ' '.repeat(placementMargin);
 
-  const dzLabel = '⚓ DEPLOYMENT ZONE';
+  const dzLabel = '⚓ DEPLOYMENT ZONE ⚓';
   const dzLabelW = displayWidth(dzLabel);
   const dzPad = Math.max(0, Math.floor((gridVisualWidth - dzLabelW) / 2));
   lines.push(pm + ' '.repeat(dzPad) + C.bright + fgRgb(255, 200, 50) + dzLabel + r);
