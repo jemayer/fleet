@@ -73,7 +73,19 @@ class Game {
       case STATES.HIGHSCORES:
         content = display.renderHighscores(this.highscore.load());
         break;
-      // Placement, Battle, GameOver will be added in Tasks 8-10
+      case STATES.PLACEMENT: {
+        const shipType = SHIP_TYPES[this.currentShipIndex];
+        content = display.renderPlacement(
+          this.playerBoard,
+          shipType.name,
+          shipType.size,
+          this.cursor,
+          this.placementOrientation,
+          this.currentShipIndex
+        );
+        break;
+      }
+      // Battle, GameOver will be added in Tasks 9-10
       default:
         content = 'State: ' + this.state + ' (coming soon)';
     }
@@ -138,10 +150,45 @@ class Game {
     this.state = STATES.TITLE;
   }
 
-  // --- Stubs for Tasks 8-10 ---
+  // --- Ship Placement ---
   handlePlacement(action) {
-    // TODO: Task 8
-    if (action.action === 'back') this.state = STATES.TITLE;
+    const shipType = SHIP_TYPES[this.currentShipIndex];
+
+    if (action.action === 'move') {
+      // Move cursor within grid bounds
+      if (action.direction === 'up') this.cursor.row = Math.max(0, this.cursor.row - 1);
+      if (action.direction === 'down') this.cursor.row = Math.min(9, this.cursor.row + 1);
+      if (action.direction === 'left') this.cursor.col = Math.max(0, this.cursor.col - 1);
+      if (action.direction === 'right') this.cursor.col = Math.min(9, this.cursor.col + 1);
+    }
+
+    if (action.action === 'rotate') {
+      this.placementOrientation = this.placementOrientation === 'horizontal' ? 'vertical' : 'horizontal';
+    }
+
+    if (action.action === 'select') {
+      // Try to place ship at cursor position
+      const placed = this.playerBoard.placeShip(
+        shipType.name,
+        shipType.size,
+        { row: this.cursor.row, col: this.cursor.col },
+        this.placementOrientation
+      );
+
+      if (placed) {
+        this.currentShipIndex++;
+        if (this.currentShipIndex >= SHIP_TYPES.length) {
+          // All ships placed — transition to battle
+          this.cursor = { row: 0, col: 0 };
+          this.state = STATES.BATTLE;
+        }
+      }
+      // If not placed (invalid position), do nothing — player sees red preview
+    }
+
+    if (action.action === 'back') {
+      this.state = STATES.TITLE;
+    }
   }
 
   handleBattle(action) {
