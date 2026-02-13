@@ -226,7 +226,7 @@ function renderTitle() {
   lines.push('');
 
   // Decorative separator with anchors
-  const sepLine = '⚓' + '═'.repeat(16) + ' 🚢 ' + '═'.repeat(16) + ' ⚓';
+  const sepLine = '⚓ ' + '═'.repeat(16) + ' 🚢 ' + '═'.repeat(16) + ' ⚓';
   lines.push(centerText(accentColor + C.bright + sepLine + r));
 
   // Subtitle
@@ -841,7 +841,6 @@ function renderHighscores(scores) {
     }
   }
 
-  lines.push('');
   lines.push(tm + fgRgb(60, 100, 160) + '─'.repeat(60) + r);
   lines.push('');
   lines.push(centerText(
