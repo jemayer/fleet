@@ -729,18 +729,22 @@ function renderHighscores(scores) {
   lines.push(centerText(C.bright + fgRgb(255, 200, 50) + '🏅 HIGH SCORES 🏅' + r));
   lines.push('');
 
-  // Table header
-  const hdrRank = 'Rank'.padEnd(6);
+  // Table — centered
+  const tableWidth = 62;
+  const tableMargin = Math.max(0, Math.floor((getWidth() - tableWidth) / 2));
+  const tm = ' '.repeat(tableMargin);
+
+  const hdrRank = 'Rank'.padEnd(8);
   const hdrName = 'Name'.padEnd(12);
   const hdrResult = 'Result'.padEnd(9);
   const hdrTurns = 'Turns'.padEnd(7);
   const hdrDiff = 'Difficulty'.padEnd(12);
   const hdrDate = 'Date'.padEnd(12);
 
-  const header = '  ' + hdrRank + hdrName + hdrResult + hdrTurns + hdrDiff + hdrDate;
+  const header = hdrRank + hdrName + hdrResult + hdrTurns + hdrDiff + hdrDate;
 
-  lines.push(C.bright + fgRgb(0, 200, 255) + header + r);
-  lines.push(fgRgb(60, 100, 160) + '  ' + '─'.repeat(58) + r);
+  lines.push(tm + C.bright + fgRgb(0, 200, 255) + header + r);
+  lines.push(tm + fgRgb(60, 100, 160) + '─'.repeat(60) + r);
 
   if (!scores || scores.length === 0) {
     lines.push('');
@@ -760,7 +764,7 @@ function renderHighscores(scores) {
       const rankColor = i < 3 ? (C.bright + fgRgb(255, 200, 50)) : fgRgb(200, 210, 220);
 
       lines.push(
-        '  ' + rankColor + rank + r +
+        tm + rankColor + rank + r +
         fgRgb(200, 210, 220) + name + r +
         resultColor + result + r +
         fgRgb(0, 180, 230) + turns + r +
@@ -771,7 +775,7 @@ function renderHighscores(scores) {
   }
 
   lines.push('');
-  lines.push(fgRgb(60, 100, 160) + '  ' + '─'.repeat(58) + r);
+  lines.push(tm + fgRgb(60, 100, 160) + '─'.repeat(60) + r);
   lines.push('');
   lines.push(centerText(
     fgRgb(80, 100, 130) + 'Press any key to return' + r
