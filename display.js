@@ -108,17 +108,15 @@ function displayWidth(str) {
   let width = 0;
   for (const ch of stripped) {
     const cp = ch.codePointAt(0);
-    // Common double-width ranges: emoji, misc symbols, dingbats
-    if (cp >= 0x1F000 ||                        // SMP emoji blocks
-        (cp >= 0x2600 && cp <= 0x27BF) ||        // Misc symbols + dingbats
-        (cp >= 0x2B50 && cp <= 0x2B55) ||        // Stars
-        (cp >= 0xFE00 && cp <= 0xFE0F) ||        // Variation selectors (skip)
-        (cp >= 0x200D && cp <= 0x200D)) {         // ZWJ (skip)
-      if (cp >= 0xFE00 || cp === 0x200D) {
-        width += 0; // zero-width joiners and variation selectors
-      } else {
-        width += 2;
-      }
+    // Zero-width characters — skip
+    if ((cp >= 0xFE00 && cp <= 0xFE0F) || cp === 0x200D) {
+      continue;
+    }
+    // Double-width: emoji and misc symbols
+    if (cp >= 0x1F000 ||                        // SMP emoji blocks (🌊🚢💥 etc.)
+        (cp >= 0x2600 && cp <= 0x27BF) ||        // Misc symbols + dingbats (⚓⚙ etc.)
+        (cp >= 0x2B50 && cp <= 0x2B55)) {         // Stars
+      width += 2;
     } else {
       width += 1;
     }
@@ -227,7 +225,7 @@ function renderTitle() {
   lines.push('');
 
   // Decorative separator with anchors
-  const sepLine = '⚓' + '═'.repeat(16) + ' 🚢 ' + '═'.repeat(16) + '⚓';
+  const sepLine = '⚓' + '═'.repeat(16) + ' 🚢 ' + '═'.repeat(16) + ' ⚓';
   lines.push(centerText(accentColor + C.bright + sepLine + r));
 
   // Subtitle
