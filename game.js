@@ -39,6 +39,7 @@ class Game {
     this.playerName = '';
     this.gameOverMenuIndex = 0;
     this.won = false;
+    this.nameEntered = false;
   }
 
   start() {
@@ -94,7 +95,15 @@ class Game {
           this.turnCount
         );
         break;
-      // GameOver will be added in Task 10
+      case STATES.GAMEOVER: {
+        const stats = {
+          turns: this.turnCount,
+          shipsRemaining: this.playerBoard.getShips().filter(s => !s.isSunk()).length,
+          difficulty: this.difficulty.charAt(0).toUpperCase() + this.difficulty.slice(1),
+        };
+        content = display.renderGameOver(this.won, stats, this.playerName, this.gameOverMenuIndex, this.nameEntered);
+        break;
+      }
       default:
         content = 'State: ' + this.state + ' (coming soon)';
     }
@@ -150,6 +159,7 @@ class Game {
     this.turnCount = 0;
     this.playerName = '';
     this.gameOverMenuIndex = 0;
+    this.nameEntered = false;
     this.state = STATES.PLACEMENT;
   }
 
@@ -263,7 +273,54 @@ class Game {
   }
 
   handleGameOver(action) {
-    // TODO: Task 10
+    if (!this.nameEntered) {
+      // Name entry mode
+      if (action.action === 'letter') {
+        if (this.playerName.length < 10) {
+          this.playerName += action.value.toUpperCase();
+        }
+      }
+      if (action.action === 'number') {
+        if (this.playerName.length < 10) {
+          this.playerName += action.value;
+        }
+      }
+      if (action.action === 'backspace') {
+        this.playerName = this.playerName.slice(0, -1);
+      }
+      if (action.action === 'select' && this.playerName.length > 0) {
+        // Save highscore
+        this.highscore.save({
+          name: this.playerName,
+          won: this.won,
+          turns: this.turnCount,
+          difficulty: this.difficulty.charAt(0).toUpperCase() + this.difficulty.slice(1),
+          date: new Date().toISOString().split('T')[0],
+        });
+        this.nameEntered = true;
+        this.gameOverMenuIndex = 0;
+      }
+    } else {
+      // Menu mode: Play Again / Main Menu / Quit
+      if (action.action === 'move') {
+        if (action.direction === 'up') this.gameOverMenuIndex = Math.max(0, this.gameOverMenuIndex - 1);
+        if (action.direction === 'down') this.gameOverMenuIndex = Math.min(2, this.gameOverMenuIndex + 1);
+      }
+      if (action.action === 'select') {
+        switch (this.gameOverMenuIndex) {
+          case 0: // Play Again
+            this.startNewGame(this.difficulty);
+            break;
+          case 1: // Main Menu
+            this.state = STATES.TITLE;
+            this.menuIndex = 0;
+            break;
+          case 2: // Quit
+            process.stdout.write(display.showCursor());
+            process.exit(0);
+        }
+      }
+    }
   }
 }
 

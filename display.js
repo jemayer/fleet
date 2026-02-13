@@ -509,9 +509,14 @@ function renderBattle(playerBoard, attackBoard, cursor, message, turnCount) {
 
 // ─── Game Over Screen ────────────────────────────────────────────────────────
 
-function renderGameOver(won, stats) {
+function renderGameOver(won, stats, playerName, menuIndex, nameEntered) {
   const C = COLORS;
   const lines = [];
+
+  // Default parameter values
+  playerName = playerName || '';
+  menuIndex = menuIndex || 0;
+  nameEntered = nameEntered || false;
 
   lines.push('');
   lines.push('');
@@ -561,18 +566,54 @@ function renderGameOver(won, stats) {
   lines.push(centerText(C.blue + '─'.repeat(40) + C.reset));
   lines.push('');
 
-  // Name entry prompt
-  lines.push(centerText(
-    C.bright + C.yellow + 'Enter your name: ' + C.reset + showCursor()
-  ));
-  lines.push('');
-  lines.push('');
+  if (!nameEntered) {
+    // Name entry mode
+    const cursor = '█';
+    const nameDisplay = playerName + (C.bright + C.white + cursor + C.reset);
+    lines.push(centerText(
+      C.bright + C.yellow + 'Enter your name: ' + C.reset +
+      C.bright + C.cyan + nameDisplay + C.reset
+    ));
+    lines.push('');
+    lines.push(centerText(
+      C.dim + 'Type your name (max 10 chars)  │  Enter: confirm' + C.reset
+    ));
+    lines.push('');
+    lines.push('');
 
-  // Menu options
-  const menuItems = ['Play Again', 'Main Menu', 'Quit'];
-  for (const item of menuItems) {
-    lines.push(centerText(C.dim + C.white + '  ' + item + '  ' + C.reset));
+    // Show menu items dimmed (not yet selectable)
+    const menuItems = ['Play Again', 'Main Menu', 'Quit'];
+    for (const item of menuItems) {
+      lines.push(centerText(C.dim + '  ' + item + '  ' + C.reset));
+    }
+  } else {
+    // Name confirmed, show it
+    lines.push(centerText(
+      C.bright + C.yellow + 'Player: ' + C.reset +
+      C.bright + C.cyan + playerName + C.reset
+    ));
+    lines.push('');
+    lines.push('');
+
+    // Menu mode - items are selectable
+    const menuItems = ['Play Again', 'Main Menu', 'Quit'];
+    for (let i = 0; i < menuItems.length; i++) {
+      if (i === menuIndex) {
+        lines.push(centerText(
+          C.bright + C.cyan + C.inverse + ' > ' + menuItems[i] + ' < ' + C.reset
+        ));
+      } else {
+        lines.push(centerText(
+          C.dim + C.white + '   ' + menuItems[i] + '   ' + C.reset
+        ));
+      }
+    }
+    lines.push('');
+    lines.push(centerText(
+      C.dim + '↑/↓ Navigate   Enter: Select' + C.reset
+    ));
   }
+
   lines.push('');
 
   return lines.join('\n');
