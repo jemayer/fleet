@@ -7,6 +7,8 @@ const COLORS = {
   reset: '\x1b[0m',
   bright: '\x1b[1m',
   dim: '\x1b[2m',
+  italic: '\x1b[3m',
+  underline: '\x1b[4m',
   inverse: '\x1b[7m',
   red: '\x1b[31m',
   green: '\x1b[32m',
@@ -22,6 +24,14 @@ const COLORS = {
   bgMagenta: '\x1b[45m',
   bgCyan: '\x1b[46m',
 };
+
+// 256-color helper: \x1b[38;5;Nm for foreground
+function fg256(n) { return `\x1b[38;5;${n}m`; }
+function bg256(n) { return `\x1b[48;5;${n}m`; }
+
+// RGB color helper
+function fgRgb(r, g, b) { return `\x1b[38;2;${r};${g};${b}m`; }
+function bgRgb(r, g, b) { return `\x1b[48;2;${r};${g};${b}m`; }
 
 // ─── Screen Utilities ────────────────────────────────────────────────────────
 
@@ -88,12 +98,20 @@ function boxRowCentered(content, width) {
 
 function renderTitle() {
   const C = COLORS;
-  const main = C.bright + C.cyan;
-  const shadow = C.blue;
   const r = C.reset;
 
-  // "SCHIFFE VERSENKEN" in large block letters, split across two lines of words
-  // First word: SCHIFFE
+  // Color gradient for title text — ocean blues to bright cyan
+  const titleGradient = [
+    fgRgb(0, 180, 255),   // bright ocean blue
+    fgRgb(0, 200, 240),   // lighter blue
+    fgRgb(0, 220, 230),   // blue-cyan
+    fgRgb(0, 240, 220),   // cyan-ish
+    fgRgb(0, 255, 210),   // bright cyan-green
+  ];
+  const shadowColor = fgRgb(30, 60, 120);  // dark navy shadow
+  const accentColor = fgRgb(255, 200, 50); // golden accent
+
+  // "SCHIFFE" in large block letters
   const schiffeLines = [
     ' ███  ██  █ █ █ ███ ███ ███',
     '█    █  █ █ █ █ █   █   █  ',
@@ -102,7 +120,7 @@ function renderTitle() {
     '███   ██  █ █ █ █   █   ███',
   ];
 
-  // Second word: VERSENKEN
+  // "VERSENKEN" in large block letters
   const versenkenLines = [
     '█  █ ███ ███  ███ ███ █  █ █ █ ███ █  █',
     '█  █ █   █  █ █   █   ██ █ ██  █   ██ █',
@@ -114,24 +132,38 @@ function renderTitle() {
   const lines = [];
   lines.push('');
 
-  // Render SCHIFFE with shadow
+  // Decorative wave header
+  const waveChars = '~🌊~═~═~🌊~═~═~🌊~═~═~🌊~═~═~🌊~';
+  lines.push(centerText(fgRgb(40, 100, 180) + waveChars + r));
+  lines.push('');
+
+  // Render SCHIFFE with shadow offset (shadow first, then main on top)
   for (let i = 0; i < schiffeLines.length; i++) {
-    const line = schiffeLines[i];
-    const centered = centerText(main + line + r);
-    lines.push(centered);
+    const color = C.bright + titleGradient[i];
+    // Shadow line (shifted right by 1 char)
+    const shadowLine = ' ' + schiffeLines[i];
+    const combined = shadowColor + shadowLine.slice(0, 1) + r + color + schiffeLines[i] + r;
+    lines.push(centerText(combined));
   }
 
   lines.push('');
 
-  // Render VERSENKEN with shadow
+  // Render VERSENKEN with gradient + shadow
   for (let i = 0; i < versenkenLines.length; i++) {
-    const line = versenkenLines[i];
-    const centered = centerText(main + line + r);
-    lines.push(centered);
+    const color = C.bright + titleGradient[i];
+    const shadowLine = ' ' + versenkenLines[i];
+    const combined = shadowColor + shadowLine.slice(0, 1) + r + color + versenkenLines[i] + r;
+    lines.push(centerText(combined));
   }
 
   lines.push('');
-  lines.push(centerText(shadow + '═'.repeat(50) + r));
+
+  // Decorative separator with anchors
+  const sepLine = '⚓' + '═'.repeat(16) + ' 🚢 ' + '═'.repeat(16) + '⚓';
+  lines.push(centerText(accentColor + C.bright + sepLine + r));
+
+  // Subtitle
+  lines.push(centerText(fgRgb(120, 160, 200) + C.italic + '~ A Naval Battle Awaits ~' + r));
   lines.push('');
 
   return lines.join('\n');
@@ -140,11 +172,15 @@ function renderTitle() {
 // Compact title for in-game screens
 function renderMiniTitle() {
   const C = COLORS;
+  const r = C.reset;
+  const titleColor = C.bright + fgRgb(0, 200, 255);
   return centerText(
-    C.bright + C.cyan + '< SCHIFFE VERSENKEN >' + C.reset
+    fgRgb(40, 100, 180) + '⚓' + r + ' ' +
+    titleColor + '< SCHIFFE VERSENKEN >' + r + ' ' +
+    fgRgb(40, 100, 180) + '⚓' + r
   ) + '\n' +
   centerText(
-    C.blue + horizontalLine(40, '─') + C.reset
+    fgRgb(60, 120, 200) + horizontalLine(44, '─') + r
   ) + '\n';
 }
 
@@ -152,27 +188,33 @@ function renderMiniTitle() {
 
 function renderMenu(items, selectedIndex) {
   const C = COLORS;
+  const r = C.reset;
   const lines = [];
+
+  // Menu item emojis
+  const menuEmojis = ['🚢', '🏅', '🌊'];
 
   lines.push(renderTitle());
   lines.push('');
 
   for (let i = 0; i < items.length; i++) {
+    const emoji = menuEmojis[i] || '';
     if (i === selectedIndex) {
       lines.push(centerText(
-        C.bright + C.cyan + C.inverse + ' > ' + items[i] + ' < ' + C.reset
+        C.bright + fgRgb(0, 255, 220) + C.inverse +
+        ' ▸ ' + emoji + ' ' + items[i] + '  ' + r
       ));
     } else {
       lines.push(centerText(
-        C.dim + C.white + '   ' + items[i] + '   ' + C.reset
+        fgRgb(100, 130, 160) + '   ' + emoji + ' ' + items[i] + '   ' + r
       ));
     }
+    lines.push('');
   }
 
   lines.push('');
-  lines.push('');
   lines.push(centerText(
-    C.dim + '↑/↓ Navigate   Enter: Select' + C.reset
+    fgRgb(80, 100, 130) + '↑/↓ Navigate   Enter: Select' + r
   ));
   lines.push('');
 
@@ -183,16 +225,17 @@ function renderMenu(items, selectedIndex) {
 
 function renderDifficulty(selectedIndex) {
   const C = COLORS;
+  const r = C.reset;
   const lines = [];
 
   const difficulties = [
-    { name: 'EASY', desc: 'Forgiving seas — AI shoots randomly.' },
-    { name: 'MEDIUM', desc: 'Tactical waters — AI hunts near hits.' },
-    { name: 'HARD', desc: 'Ruthless admiral — AI plays optimally.' },
+    { name: 'EASY',   emoji: '🌊', desc: 'Forgiving seas — AI shoots randomly.', color: fgRgb(80, 220, 120) },
+    { name: 'MEDIUM', emoji: '⚓', desc: 'Tactical waters — AI hunts near hits.', color: fgRgb(255, 200, 50) },
+    { name: 'HARD',   emoji: '💥', desc: 'Ruthless admiral — AI plays optimally.', color: fgRgb(255, 80, 80) },
   ];
 
   lines.push(renderTitle());
-  lines.push(centerText(C.bright + C.yellow + '[ SELECT DIFFICULTY ]' + C.reset));
+  lines.push(centerText(C.bright + fgRgb(255, 200, 50) + '⚙  SELECT DIFFICULTY  ⚙' + r));
   lines.push('');
   lines.push('');
 
@@ -200,17 +243,18 @@ function renderDifficulty(selectedIndex) {
     const d = difficulties[i];
     if (i === selectedIndex) {
       lines.push(centerText(
-        C.bright + C.cyan + C.inverse + ' > ' + d.name + ' < ' + C.reset
+        C.bright + d.color + C.inverse +
+        ' ▸ ' + d.emoji + ' ' + d.name + '  ' + r
       ));
       lines.push(centerText(
-        C.bright + C.white + d.desc + C.reset
+        C.bright + C.white + d.desc + r
       ));
     } else {
       lines.push(centerText(
-        C.dim + C.white + '   ' + d.name + '   ' + C.reset
+        fgRgb(100, 130, 160) + '   ' + d.emoji + ' ' + d.name + '   ' + r
       ));
       lines.push(centerText(
-        C.dim + d.desc + C.reset
+        fgRgb(80, 100, 130) + d.desc + r
       ));
     }
     lines.push('');
@@ -218,7 +262,7 @@ function renderDifficulty(selectedIndex) {
 
   lines.push('');
   lines.push(centerText(
-    C.dim + '↑/↓ Navigate   Enter: Select' + C.reset
+    fgRgb(80, 100, 130) + '↑/↓ Navigate   Enter: Select   Esc: Back' + r
   ));
   lines.push('');
 
@@ -229,20 +273,23 @@ function renderDifficulty(selectedIndex) {
 
 function renderGrid(grid, options = {}) {
   const C = COLORS;
+  const r = C.reset;
   const { showShips = false, cursor = null, label = '' } = options;
   const lines = [];
+  const labelEmoji = showShips ? '🚢' : '🎯';
+  const borderColor = showShips ? fgRgb(60, 120, 200) : fgRgb(200, 80, 60);
 
   if (label) {
-    lines.push(C.bright + C.yellow + ' ' + label + C.reset);
+    lines.push(C.bright + fgRgb(255, 200, 50) + ' ' + labelEmoji + ' ' + label + r);
   }
 
   // Column headers
-  lines.push(C.dim + '    A B C D E F G H I J' + C.reset);
-  lines.push(C.dim + '   ┌' + '──'.repeat(10) + '┐' + C.reset);
+  lines.push(borderColor + '    A B C D E F G H I J' + r);
+  lines.push(borderColor + '   ┌' + '──'.repeat(10) + '┐' + r);
 
   for (let row = 0; row < 10; row++) {
     const rowNum = String(row + 1).padStart(2, ' ');
-    let line = C.dim + rowNum + ' │' + C.reset;
+    let line = borderColor + rowNum + ' │' + r;
 
     for (let col = 0; col < 10; col++) {
       const cell = grid[row][col];
@@ -252,42 +299,42 @@ function renderGrid(grid, options = {}) {
       switch (cell) {
         case Board.EMPTY:
           if (showShips) {
-            symbol = C.blue + '~' + C.reset;
+            symbol = fgRgb(40, 80, 150) + '~' + r;
           } else {
-            symbol = C.dim + '·' + C.reset;
+            symbol = fgRgb(50, 60, 80) + '·' + r;
           }
           break;
         case Board.SHIP:
           if (showShips) {
-            symbol = C.bright + C.white + '█' + C.reset;
+            symbol = C.bright + fgRgb(180, 200, 220) + '█' + r;
           } else {
-            symbol = C.dim + '·' + C.reset;
+            symbol = fgRgb(50, 60, 80) + '·' + r;
           }
           break;
         case Board.MISS:
-          symbol = C.dim + C.white + '○' + C.reset;
+          symbol = fgRgb(80, 120, 180) + '○' + r;
           break;
         case Board.HIT:
-          symbol = C.bright + C.red + '✖' + C.reset;
+          symbol = C.bright + fgRgb(255, 60, 30) + '✖' + r;
           break;
         default:
-          symbol = C.dim + '·' + C.reset;
+          symbol = fgRgb(50, 60, 80) + '·' + r;
       }
 
       if (isCursor) {
         // Strip existing colors and apply cursor highlight
         const rawSymbol = symbol.replace(/\x1b\[[0-9;]*m/g, '');
-        symbol = C.bgCyan + C.bright + C.white + rawSymbol + C.reset;
+        symbol = bgRgb(0, 160, 200) + C.bright + fgRgb(255, 255, 255) + rawSymbol + r;
       }
 
       line += symbol + ' ';
     }
 
-    line += C.dim + '│' + C.reset;
+    line += borderColor + '│' + r;
     lines.push(line);
   }
 
-  lines.push(C.dim + '   └' + '──'.repeat(10) + '┘' + C.reset);
+  lines.push(borderColor + '   └' + '──'.repeat(10) + '┘' + r);
 
   return lines.join('\n');
 }
@@ -330,10 +377,14 @@ function renderSideBySide(playerGrid, attackGrid, cursor) {
 
 function renderInventory(ships, label) {
   const C = COLORS;
+  const r = C.reset;
   const lines = [];
 
-  lines.push(C.bright + C.yellow + ' ' + label + C.reset);
-  lines.push(C.dim + ' ' + '─'.repeat(30) + C.reset);
+  const isEnemy = label.includes('ENEMY');
+  const labelEmoji = isEnemy ? '🎯' : '⚓';
+
+  lines.push(C.bright + fgRgb(255, 200, 50) + ' ' + labelEmoji + ' ' + label + r);
+  lines.push(fgRgb(60, 80, 120) + ' ' + '─'.repeat(30) + r);
 
   // Find max ship name length for alignment
   const maxNameLen = ships.reduce((max, s) => Math.max(max, s.name.length), 0);
@@ -347,19 +398,19 @@ function renderInventory(ships, label) {
     for (let i = 0; i < damage.length; i++) {
       if (i > 0) segments += ' ';
       if (sunk) {
-        segments += C.bright + C.red + '✖' + C.reset;
+        segments += C.bright + fgRgb(255, 50, 30) + '✖' + r;
       } else if (damage[i]) {
-        segments += C.bright + C.yellow + '◈' + C.reset;
+        segments += C.bright + fgRgb(255, 180, 0) + '◈' + r;
       } else {
-        segments += C.bright + C.green + '■' + C.reset;
+        segments += C.bright + fgRgb(0, 220, 100) + '■' + r;
       }
     }
     segments += ']';
 
-    const sunkLabel = sunk ? (C.bright + C.red + ' SUNK!' + C.reset) : '';
-    const nameColor = sunk ? (C.dim + C.red) : (C.white);
+    const sunkLabel = sunk ? (C.bright + fgRgb(255, 50, 30) + ' 💥 SUNK!' + r) : '';
+    const nameColor = sunk ? (C.dim + fgRgb(180, 60, 60)) : fgRgb(200, 210, 220);
 
-    lines.push(' ' + nameColor + paddedName + C.reset + segments + sunkLabel);
+    lines.push(' ' + nameColor + paddedName + r + segments + sunkLabel);
   }
 
   return lines.join('\n');
@@ -369,10 +420,11 @@ function renderInventory(ships, label) {
 
 function renderPlacement(board, currentShipName, currentShipSize, cursor, orientation, placedCount) {
   const C = COLORS;
+  const r = C.reset;
   const lines = [];
 
   lines.push(renderMiniTitle());
-  lines.push(centerText(C.bright + C.yellow + '[ PLACE YOUR SHIPS ]' + C.reset));
+  lines.push(centerText(C.bright + fgRgb(255, 200, 50) + '🚢 PLACE YOUR SHIPS 🚢' + r));
   lines.push('');
 
   // Build a display grid with ghost ship preview
@@ -387,10 +439,10 @@ function renderPlacement(board, currentShipName, currentShipSize, cursor, orient
     validPlacement = board.canPlaceShip(currentShipSize, cursor, orientation);
 
     for (let i = 0; i < currentShipSize; i++) {
-      const r = cursor.row + (orientation === 'vertical' ? i : 0);
-      const c = cursor.col + (orientation === 'horizontal' ? i : 0);
-      if (r >= 0 && r < 10 && c >= 0 && c < 10) {
-        ghostPositions.push({ row: r, col: c });
+      const gr = cursor.row + (orientation === 'vertical' ? i : 0);
+      const gc = cursor.col + (orientation === 'horizontal' ? i : 0);
+      if (gr >= 0 && gr < 10 && gc >= 0 && gc < 10) {
+        ghostPositions.push({ row: gr, col: gc });
       }
     }
   }
@@ -400,13 +452,14 @@ function renderPlacement(board, currentShipName, currentShipSize, cursor, orient
   const placementMargin = Math.max(0, Math.floor((getWidth() - gridVisualWidth) / 2));
   const pm = ' '.repeat(placementMargin);
 
-  lines.push(pm + C.bright + C.yellow + ' DEPLOYMENT ZONE' + C.reset);
-  lines.push(pm + C.dim + '    A B C D E F G H I J' + C.reset);
-  lines.push(pm + C.dim + '   ┌' + '──'.repeat(10) + '┐' + C.reset);
+  lines.push(pm + C.bright + fgRgb(255, 200, 50) + ' ⚓ DEPLOYMENT ZONE' + r);
+  const borderClr = fgRgb(60, 120, 200);
+  lines.push(pm + borderClr + '    A B C D E F G H I J' + r);
+  lines.push(pm + borderClr + '   ┌' + '──'.repeat(10) + '┐' + r);
 
   for (let row = 0; row < 10; row++) {
     const rowNum = String(row + 1).padStart(2, ' ');
-    let line = C.dim + rowNum + ' │' + C.reset;
+    let line = borderClr + rowNum + ' │' + r;
 
     for (let col = 0; col < 10; col++) {
       const cell = displayGrid[row][col];
@@ -417,50 +470,50 @@ function renderPlacement(board, currentShipName, currentShipSize, cursor, orient
       if (isGhost && cell !== Board.SHIP) {
         // Ghost ship preview
         if (validPlacement) {
-          symbol = C.bright + C.green + '█' + C.reset;
+          symbol = C.bright + fgRgb(0, 220, 100) + '█' + r;
         } else {
-          symbol = C.bright + C.red + '█' + C.reset;
+          symbol = C.bright + fgRgb(255, 60, 50) + '█' + r;
         }
       } else if (cell === Board.SHIP) {
         if (isGhost && !validPlacement) {
-          symbol = C.bright + C.red + '█' + C.reset;
+          symbol = C.bright + fgRgb(255, 60, 50) + '█' + r;
         } else {
-          symbol = C.bright + C.white + '█' + C.reset;
+          symbol = C.bright + fgRgb(180, 200, 220) + '█' + r;
         }
       } else {
-        symbol = C.blue + '~' + C.reset;
+        symbol = fgRgb(40, 80, 150) + '~' + r;
       }
 
       if (isCursorPos && !isGhost) {
         const rawSymbol = symbol.replace(/\x1b\[[0-9;]*m/g, '');
-        symbol = C.bgCyan + C.bright + C.white + rawSymbol + C.reset;
+        symbol = bgRgb(0, 160, 200) + C.bright + fgRgb(255, 255, 255) + rawSymbol + r;
       }
 
       line += symbol + ' ';
     }
 
-    line += C.dim + '│' + C.reset;
+    line += borderClr + '│' + r;
     lines.push(pm + line);
   }
 
-  lines.push(pm + C.dim + '   └' + '──'.repeat(10) + '┘' + C.reset);
+  lines.push(pm + borderClr + '   └' + '──'.repeat(10) + '┘' + r);
   lines.push('');
 
   // Ship info
   const orientLabel = orientation === 'horizontal' ? 'HORIZONTAL ↔' : 'VERTICAL ↕';
   lines.push(centerText(
-    C.bright + C.white + 'Placing: ' +
-    C.cyan + currentShipName +
-    C.white + ' (size ' + C.yellow + currentShipSize + C.white + ')  ' +
-    C.dim + '[' + orientLabel + ']' + C.reset
+    C.bright + fgRgb(200, 210, 220) + '🚢 Placing: ' +
+    fgRgb(0, 220, 255) + currentShipName +
+    fgRgb(200, 210, 220) + ' (size ' + fgRgb(255, 200, 50) + currentShipSize + fgRgb(200, 210, 220) + ')  ' +
+    fgRgb(120, 140, 170) + '[' + orientLabel + ']' + r
   ));
   lines.push('');
   lines.push(centerText(
-    C.bright + C.magenta + 'Ships placed: ' + placedCount + '/5' + C.reset
+    C.bright + fgRgb(180, 120, 255) + '⚓ Ships placed: ' + placedCount + '/5' + r
   ));
   lines.push('');
   lines.push(centerText(
-    C.dim + 'Arrow keys: move  │  R: rotate  │  Enter: place' + C.reset
+    fgRgb(80, 100, 130) + 'Arrow keys: move  │  R: rotate  │  Enter: place  │  Esc: back' + r
   ));
   lines.push('');
 
@@ -471,6 +524,7 @@ function renderPlacement(board, currentShipName, currentShipSize, cursor, orient
 
 function renderBattle(playerBoard, attackBoard, cursor, message, turnCount) {
   const C = COLORS;
+  const r = C.reset;
   const lines = [];
 
   lines.push(renderMiniTitle());
@@ -504,18 +558,24 @@ function renderBattle(playerBoard, attackBoard, cursor, message, turnCount) {
 
   // Status message
   if (message) {
+    // Color the message based on content
+    let msgColor = C.bright + fgRgb(255, 200, 50); // default gold
+    if (message.includes('Hit')) msgColor = C.bright + fgRgb(255, 100, 30);
+    if (message.includes('sunk') || message.includes('Sunk')) msgColor = C.bright + fgRgb(255, 50, 50);
+    if (message.includes('Miss')) msgColor = fgRgb(80, 140, 200);
+
     lines.push(centerText(
-      C.bright + C.yellow + '>> ' + message + ' <<' + C.reset
+      msgColor + '💬 ' + message + r
     ));
   }
 
   // Turn counter
   lines.push(centerText(
-    C.dim + 'Turn: ' + turnCount + C.reset
+    fgRgb(100, 130, 160) + '⏱  Turn: ' + C.bright + fgRgb(255, 200, 50) + turnCount + r
   ));
   lines.push('');
   lines.push(centerText(
-    C.dim + 'Arrow keys: aim  │  Enter: fire' + C.reset
+    fgRgb(80, 100, 130) + 'Arrow keys: aim  │  Enter: fire 💥' + r
   ));
   lines.push('');
 
@@ -526,6 +586,7 @@ function renderBattle(playerBoard, attackBoard, cursor, message, turnCount) {
 
 function renderGameOver(won, stats, playerName, menuIndex, nameEntered) {
   const C = COLORS;
+  const r = C.reset;
   const lines = [];
 
   // Default parameter values
@@ -537,6 +598,13 @@ function renderGameOver(won, stats, playerName, menuIndex, nameEntered) {
   lines.push('');
 
   if (won) {
+    const victoryGradient = [
+      fgRgb(0, 255, 100),
+      fgRgb(50, 255, 120),
+      fgRgb(100, 255, 150),
+      fgRgb(50, 255, 120),
+      fgRgb(0, 255, 100),
+    ];
     const victoryArt = [
       '█  █ █ ██ ███ ███ ███ █   █ █',
       '█  █ █ █   █  █  █ █  █ █  █',
@@ -544,10 +612,19 @@ function renderGameOver(won, stats, playerName, menuIndex, nameEntered) {
       ' ██  █ █   █  █  █ █ █  ██  ',
       ' ██  █  ██  █  ███ █  █ ██ █',
     ];
-    for (const line of victoryArt) {
-      lines.push(centerText(C.bright + C.green + line + C.reset));
+    for (let i = 0; i < victoryArt.length; i++) {
+      lines.push(centerText(C.bright + victoryGradient[i] + victoryArt[i] + r));
     }
+    lines.push('');
+    lines.push(centerText('🏅🏅🏅'));
   } else {
+    const defeatGradient = [
+      fgRgb(255, 80, 80),
+      fgRgb(255, 60, 60),
+      fgRgb(220, 40, 40),
+      fgRgb(255, 60, 60),
+      fgRgb(255, 80, 80),
+    ];
     const defeatArt = [
       '███ ███ ███ ███  █  ███ █',
       '█ █ █   █   █   █ █  █  █',
@@ -555,77 +632,82 @@ function renderGameOver(won, stats, playerName, menuIndex, nameEntered) {
       '█ █ █   █   █   █ █  █   ',
       '███ ███ █   ███ █ █  █  █',
     ];
-    for (const line of defeatArt) {
-      lines.push(centerText(C.bright + C.red + line + C.reset));
+    for (let i = 0; i < defeatArt.length; i++) {
+      lines.push(centerText(C.bright + defeatGradient[i] + defeatArt[i] + r));
     }
+    lines.push('');
+    lines.push(centerText('🌊💀🌊'));
   }
 
   lines.push('');
-  lines.push(centerText(C.blue + '═'.repeat(50) + C.reset));
+  lines.push(centerText(fgRgb(60, 100, 180) + '═'.repeat(50) + r));
   lines.push('');
 
   // Stats
   const diffLabel = stats.difficulty || 'Unknown';
-  lines.push(centerText(C.bright + C.yellow + '[ GAME STATISTICS ]' + C.reset));
+  lines.push(centerText(C.bright + fgRgb(255, 200, 50) + '📊 GAME STATISTICS 📊' + r));
   lines.push('');
   lines.push(centerText(
-    C.white + 'Turns played:     ' + C.bright + C.cyan + stats.turns + C.reset
+    fgRgb(200, 210, 220) + '⏱  Turns played:     ' + C.bright + fgRgb(0, 220, 255) + stats.turns + r
   ));
   lines.push(centerText(
-    C.white + 'Ships remaining:  ' + C.bright + C.cyan + stats.shipsRemaining + C.reset
+    fgRgb(200, 210, 220) + '🚢 Ships remaining:  ' + C.bright + fgRgb(0, 220, 255) + stats.shipsRemaining + r
   ));
   lines.push(centerText(
-    C.white + 'Difficulty:       ' + C.bright + C.cyan + diffLabel + C.reset
+    fgRgb(200, 210, 220) + '⚙  Difficulty:       ' + C.bright + fgRgb(0, 220, 255) + diffLabel + r
   ));
   lines.push('');
-  lines.push(centerText(C.blue + '─'.repeat(40) + C.reset));
+  lines.push(centerText(fgRgb(60, 100, 180) + '─'.repeat(40) + r));
   lines.push('');
 
   if (!nameEntered) {
     // Name entry mode
-    const cursor = '█';
-    const nameDisplay = playerName + (C.bright + C.white + cursor + C.reset);
+    const cursorChar = '█';
+    const nameDisplay = playerName + (C.bright + fgRgb(255, 255, 255) + cursorChar + r);
     lines.push(centerText(
-      C.bright + C.yellow + 'Enter your name: ' + C.reset +
-      C.bright + C.cyan + nameDisplay + C.reset
+      C.bright + fgRgb(255, 200, 50) + '✏  Enter your name: ' + r +
+      C.bright + fgRgb(0, 220, 255) + nameDisplay + r
     ));
     lines.push('');
     lines.push(centerText(
-      C.dim + 'Type your name (max 10 chars)  │  Enter: confirm' + C.reset
+      fgRgb(80, 100, 130) + 'Type your name (max 10 chars)  │  Enter: confirm' + r
     ));
     lines.push('');
     lines.push('');
 
     // Show menu items dimmed (not yet selectable)
+    const menuEmojis = ['🔄', '🏠', '🌊'];
     const menuItems = ['Play Again', 'Main Menu', 'Quit'];
-    for (const item of menuItems) {
-      lines.push(centerText(C.dim + '  ' + item + '  ' + C.reset));
+    for (let j = 0; j < menuItems.length; j++) {
+      lines.push(centerText(fgRgb(60, 70, 90) + '  ' + menuEmojis[j] + ' ' + menuItems[j] + '  ' + r));
     }
   } else {
     // Name confirmed, show it
     lines.push(centerText(
-      C.bright + C.yellow + 'Player: ' + C.reset +
-      C.bright + C.cyan + playerName + C.reset
+      C.bright + fgRgb(255, 200, 50) + '🏅 Player: ' + r +
+      C.bright + fgRgb(0, 220, 255) + playerName + r
     ));
     lines.push('');
     lines.push('');
 
     // Menu mode - items are selectable
+    const menuEmojis = ['🔄', '🏠', '🌊'];
     const menuItems = ['Play Again', 'Main Menu', 'Quit'];
     for (let i = 0; i < menuItems.length; i++) {
       if (i === menuIndex) {
         lines.push(centerText(
-          C.bright + C.cyan + C.inverse + ' > ' + menuItems[i] + ' < ' + C.reset
+          C.bright + fgRgb(0, 255, 220) + C.inverse +
+          ' ▸ ' + menuEmojis[i] + ' ' + menuItems[i] + '  ' + r
         ));
       } else {
         lines.push(centerText(
-          C.dim + C.white + '   ' + menuItems[i] + '   ' + C.reset
+          fgRgb(100, 130, 160) + '   ' + menuEmojis[i] + ' ' + menuItems[i] + '   ' + r
         ));
       }
     }
     lines.push('');
     lines.push(centerText(
-      C.dim + '↑/↓ Navigate   Enter: Select' + C.reset
+      fgRgb(80, 100, 130) + '↑/↓ Navigate   Enter: Select' + r
     ));
   }
 
@@ -638,10 +720,13 @@ function renderGameOver(won, stats, playerName, menuIndex, nameEntered) {
 
 function renderHighscores(scores) {
   const C = COLORS;
+  const r = C.reset;
   const lines = [];
 
+  const rankEmojis = ['🥇', '🥈', '🥉'];
+
   lines.push(renderTitle());
-  lines.push(centerText(C.bright + C.yellow + '[ HIGH SCORES ]' + C.reset));
+  lines.push(centerText(C.bright + fgRgb(255, 200, 50) + '🏅 HIGH SCORES 🏅' + r));
   lines.push('');
 
   // Table header
@@ -654,41 +739,42 @@ function renderHighscores(scores) {
 
   const header = '  ' + hdrRank + hdrName + hdrResult + hdrTurns + hdrDiff + hdrDate;
 
-  lines.push(C.bright + C.cyan + header + C.reset);
-  lines.push(C.dim + '  ' + '─'.repeat(58) + C.reset);
+  lines.push(C.bright + fgRgb(0, 200, 255) + header + r);
+  lines.push(fgRgb(60, 100, 160) + '  ' + '─'.repeat(58) + r);
 
   if (!scores || scores.length === 0) {
     lines.push('');
-    lines.push(centerText(C.dim + 'No scores recorded yet.' + C.reset));
+    lines.push(centerText(fgRgb(100, 130, 160) + '🌊 No scores recorded yet. 🌊' + r));
   } else {
     for (let i = 0; i < scores.length; i++) {
       const s = scores[i];
-      const rank = String(i + 1).padEnd(6);
+      const rankEmoji = i < 3 ? rankEmojis[i] + ' ' : '   ';
+      const rank = (rankEmoji + String(i + 1)).padEnd(8);
       const name = (s.name || 'Unknown').padEnd(12);
       const result = (s.won ? 'WIN' : 'LOSS').padEnd(9);
       const turns = String(s.turns || 0).padEnd(7);
       const diff = (s.difficulty || '???').padEnd(12);
       const date = (s.date || '').padEnd(12);
 
-      const resultColor = s.won ? (C.bright + C.green) : (C.dim + C.red);
-      const rankColor = i < 3 ? (C.bright + C.yellow) : (C.white);
+      const resultColor = s.won ? (C.bright + fgRgb(0, 220, 100)) : (fgRgb(200, 80, 80));
+      const rankColor = i < 3 ? (C.bright + fgRgb(255, 200, 50)) : fgRgb(200, 210, 220);
 
       lines.push(
-        '  ' + rankColor + rank + C.reset +
-        C.white + name + C.reset +
-        resultColor + result + C.reset +
-        C.cyan + turns + C.reset +
-        C.magenta + diff + C.reset +
-        C.dim + date + C.reset
+        '  ' + rankColor + rank + r +
+        fgRgb(200, 210, 220) + name + r +
+        resultColor + result + r +
+        fgRgb(0, 180, 230) + turns + r +
+        fgRgb(180, 120, 255) + diff + r +
+        fgRgb(100, 130, 160) + date + r
       );
     }
   }
 
   lines.push('');
-  lines.push(C.dim + '  ' + '─'.repeat(58) + C.reset);
+  lines.push(fgRgb(60, 100, 160) + '  ' + '─'.repeat(58) + r);
   lines.push('');
   lines.push(centerText(
-    C.dim + 'Press any key to return' + C.reset
+    fgRgb(80, 100, 130) + 'Press any key to return' + r
   ));
   lines.push('');
 
