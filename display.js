@@ -43,35 +43,42 @@ function showCursor() {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-const WIDTH = 80;
+function getWidth() {
+  return process.stdout.columns || 80;
+}
 
-function centerText(text, width = WIDTH) {
+function centerText(text, width) {
+  const w = width || getWidth();
   const stripped = text.replace(/\x1b\[[0-9;]*m/g, '');
-  const pad = Math.max(0, Math.floor((width - stripped.length) / 2));
+  const pad = Math.max(0, Math.floor((w - stripped.length) / 2));
   return ' '.repeat(pad) + text;
 }
 
-function horizontalLine(width = WIDTH, char = '─') {
-  return char.repeat(width);
+function horizontalLine(width, char = '─') {
+  return char.repeat(width || getWidth());
 }
 
-function boxTop(width = WIDTH) {
-  return '┌' + '─'.repeat(width - 2) + '┐';
+function boxTop(width) {
+  const w = width || getWidth();
+  return '┌' + '─'.repeat(w - 2) + '┐';
 }
 
-function boxBottom(width = WIDTH) {
-  return '└' + '─'.repeat(width - 2) + '┘';
+function boxBottom(width) {
+  const w = width || getWidth();
+  return '└' + '─'.repeat(w - 2) + '┘';
 }
 
-function boxRow(content, width = WIDTH) {
+function boxRow(content, width) {
+  const w = width || getWidth();
   const stripped = content.replace(/\x1b\[[0-9;]*m/g, '');
-  const pad = Math.max(0, width - 2 - stripped.length);
+  const pad = Math.max(0, w - 2 - stripped.length);
   return '│' + content + ' '.repeat(pad) + '│';
 }
 
-function boxRowCentered(content, width = WIDTH) {
+function boxRowCentered(content, width) {
+  const w = width || getWidth();
   const stripped = content.replace(/\x1b\[[0-9;]*m/g, '');
-  const totalPad = Math.max(0, width - 2 - stripped.length);
+  const totalPad = Math.max(0, w - 2 - stripped.length);
   const left = Math.floor(totalPad / 2);
   const right = totalPad - left;
   return '│' + ' '.repeat(left) + content + ' '.repeat(right) + '│';
@@ -302,6 +309,10 @@ function renderSideBySide(playerGrid, attackGrid, cursor) {
   const lines = [];
   const maxLen = Math.max(playerLines.length, attackLines.length);
   const gap = '    ';
+  const gridPairWidth = 26 + gap.length + 26; // approx visual width of both grids
+  const termWidth = getWidth();
+  const marginLeft = Math.max(0, Math.floor((termWidth - gridPairWidth) / 2));
+  const margin = ' '.repeat(marginLeft);
 
   for (let i = 0; i < maxLen; i++) {
     const left = i < playerLines.length ? playerLines[i] : '';
@@ -309,7 +320,7 @@ function renderSideBySide(playerGrid, attackGrid, cursor) {
     // Pad left side to consistent visual width
     const leftStripped = left.replace(/\x1b\[[0-9;]*m/g, '');
     const padNeeded = Math.max(0, 26 - leftStripped.length);
-    lines.push(left + ' '.repeat(padNeeded) + gap + right);
+    lines.push(margin + left + ' '.repeat(padNeeded) + gap + right);
   }
 
   return lines.join('\n');
@@ -384,14 +395,14 @@ function renderPlacement(board, currentShipName, currentShipSize, cursor, orient
     }
   }
 
-  // Render grid with ghost overlay
-  const gridLabel = C.bright + C.yellow + ' DEPLOYMENT ZONE' + C.reset;
-  const colHeader = C.dim + '    A B C D E F G H I J' + C.reset;
-  const gridTop = C.dim + '   ┌' + '──'.repeat(10) + '┐' + C.reset;
+  // Render grid with ghost overlay — centered
+  const gridVisualWidth = 26; // "    A B C D E F G H I J" = 24 + border chars
+  const placementMargin = Math.max(0, Math.floor((getWidth() - gridVisualWidth) / 2));
+  const pm = ' '.repeat(placementMargin);
 
-  lines.push(gridLabel);
-  lines.push(colHeader);
-  lines.push(gridTop);
+  lines.push(pm + C.bright + C.yellow + ' DEPLOYMENT ZONE' + C.reset);
+  lines.push(pm + C.dim + '    A B C D E F G H I J' + C.reset);
+  lines.push(pm + C.dim + '   ┌' + '──'.repeat(10) + '┐' + C.reset);
 
   for (let row = 0; row < 10; row++) {
     const rowNum = String(row + 1).padStart(2, ' ');
@@ -429,10 +440,10 @@ function renderPlacement(board, currentShipName, currentShipSize, cursor, orient
     }
 
     line += C.dim + '│' + C.reset;
-    lines.push(line);
+    lines.push(pm + line);
   }
 
-  lines.push(C.dim + '   └' + '──'.repeat(10) + '┘' + C.reset);
+  lines.push(pm + C.dim + '   └' + '──'.repeat(10) + '┘' + C.reset);
   lines.push('');
 
   // Ship info
@@ -476,13 +487,17 @@ function renderBattle(playerBoard, attackBoard, cursor, message, turnCount) {
 
   const maxInvLen = Math.max(playerInvLines.length, enemyInvLines.length);
   const gap = '    ';
+  const invPairWidth = 34 + gap.length + 34;
+  const termWidth = getWidth();
+  const invMarginLeft = Math.max(0, Math.floor((termWidth - invPairWidth) / 2));
+  const invMargin = ' '.repeat(invMarginLeft);
 
   for (let i = 0; i < maxInvLen; i++) {
     const left = i < playerInvLines.length ? playerInvLines[i] : '';
     const right = i < enemyInvLines.length ? enemyInvLines[i] : '';
     const leftStripped = left.replace(/\x1b\[[0-9;]*m/g, '');
     const padNeeded = Math.max(0, 34 - leftStripped.length);
-    lines.push(left + ' '.repeat(padNeeded) + gap + right);
+    lines.push(invMargin + left + ' '.repeat(padNeeded) + gap + right);
   }
 
   lines.push('');
