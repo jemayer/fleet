@@ -15,6 +15,11 @@
 
 ---
 
+![Battleship start-up screen](docs/screenshots/battlegame-startup.png)
+![Battleship gameplay](docs/screenshots/battlegame-gameplay.png)
+![Battleship victory](docs/screenshots/battlegame-victory.png)
+![Battleship highscores](docs/screenshots/battlegame-highscores.png)
+
 ## How to Run
 
 ```bash
