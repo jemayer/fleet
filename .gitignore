@@ -3,3 +3,4 @@ highscores.json
 .amazonq/
 .claude/
 *.log
+.vibe/
