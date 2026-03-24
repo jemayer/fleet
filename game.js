@@ -1,10 +1,10 @@
 // game.js
 const { InputHandler } = require('./input');
 const { Board } = require('./board');
-const { SHIP_TYPES } = require('./ship');
 const { AI } = require('./ai');
 const { Highscore } = require('./highscore');
 const display = require('./display');
+const { DIFFICULTIES, DIFFICULTY_CONFIGS } = require('./difficulty');
 
 const STATES = {
   TITLE: 'title',
@@ -15,7 +15,6 @@ const STATES = {
   HIGHSCORES: 'highscores',
 };
 
-const DIFFICULTIES = ['easy', 'medium', 'hard'];
 const MENU_ITEMS = ['New Game', 'Highscores', 'Quit'];
 
 class Game {
@@ -99,14 +98,15 @@ class Game {
         content = display.renderHighscores(this.highscore.load(), this.highscoreTab);
         break;
       case STATES.PLACEMENT: {
-        const shipType = SHIP_TYPES[this.currentShipIndex];
+        const shipType = this.difficultyConfig.ships[this.currentShipIndex];
         content = display.renderPlacement(
           this.playerBoard,
           shipType.name,
           shipType.size,
           this.cursor,
           this.placementOrientation,
-          this.currentShipIndex
+          this.currentShipIndex,
+          this.difficultyConfig.ships.length
         );
         break;
       }
@@ -179,11 +179,31 @@ class Game {
   }
 
   startNewGame(difficulty) {
+    const config = DIFFICULTY_CONFIGS[difficulty];
+
     this.playerBoard = new Board();
     this.enemyBoard = new Board();
-    this.enemyBoard.placeShipsRandomly();
+
+    // Place islands on both boards (same config, different random positions)
+    this.playerBoard.placeIslands(config.islandCount, config.islandStyle);
+    this.enemyBoard.placeIslands(config.islandCount, config.islandStyle);
+
+    // Place enemy ships randomly respecting islands
+    this.enemyBoard.placeShipsRandomly(config.ships);
+
     this.ai = new AI(difficulty);
+
+    // Tell AI about island positions on the player board so it skips them
+    const playerIslands = new Set();
+    const playerGrid = this.playerBoard.getGrid();
+    for (let r = 0; r < 10; r++)
+      for (let c = 0; c < 10; c++)
+        if (playerGrid[r][c] === Board.ISLAND)
+          playerIslands.add(`${r},${c}`);
+    this.ai.setIslands(playerIslands);
+
     this.difficulty = difficulty;
+    this.difficultyConfig = config;
     this.cursor = { row: 0, col: 0 };
     this.currentShipIndex = 0;
     this.placementOrientation = 'horizontal';
@@ -210,7 +230,7 @@ class Game {
 
   // --- Ship Placement ---
   handlePlacement(action) {
-    const shipType = SHIP_TYPES[this.currentShipIndex];
+    const shipType = this.difficultyConfig.ships[this.currentShipIndex];
 
     if (action.action === 'move') {
       // Move cursor within grid bounds
@@ -235,7 +255,7 @@ class Game {
 
       if (placed) {
         this.currentShipIndex++;
-        if (this.currentShipIndex >= SHIP_TYPES.length) {
+        if (this.currentShipIndex >= this.difficultyConfig.ships.length) {
           // All ships placed — transition to battle
           this.cursor = { row: 0, col: 0 };
           this.state = STATES.BATTLE;
@@ -268,6 +288,11 @@ class Game {
 
       if (result.alreadyShot) {
         this.message = 'Already fired there! Choose another target.';
+        return;
+      }
+
+      if (result.isIsland) {
+        this.message = 'That\'s an island! Choose another target.';
         return;
       }
 
