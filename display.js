@@ -812,10 +812,12 @@ function renderGameOver(won, stats, playerName, menuIndex, nameEntered) {
 
 // ─── Highscore Screen ────────────────────────────────────────────────────────
 
-function renderHighscores(scores) {
+function renderHighscores(scores, activeTab) {
   const C = COLORS;
   const r = C.reset;
   const lines = [];
+  const tabs = ['Easy', 'Medium', 'Hard'];
+  const tabIdx = activeTab || 0;
 
   const rankEmojis = ['🥇', '🥈', '🥉'];
 
@@ -823,35 +825,49 @@ function renderHighscores(scores) {
   lines.push(centerText(C.bright + fgRgb(255, 200, 50) + '🏅 HIGH SCORES 🏅' + r));
   lines.push('');
 
-  // Table — centered
-  const tableWidth = 62;
+  // Tab bar
+  const tabParts = tabs.map((tab, i) => {
+    if (i === tabIdx) {
+      return C.bright + bgRgb(30, 80, 140) + fgRgb(255, 220, 80) + ' ◆ ' + tab + ' ◆ ' + r;
+    }
+    return fgRgb(80, 110, 150) + '   ' + tab + '   ' + r;
+  });
+  const tabBar = tabParts.join(fgRgb(50, 70, 100) + '│' + r);
+  lines.push(centerText(tabBar));
+  lines.push('');
+
+  // Table — centered (no difficulty column needed now)
+  const tableWidth = 50;
   const tableMargin = Math.max(0, Math.floor((getWidth() - tableWidth) / 2));
   const tm = ' '.repeat(tableMargin);
 
   const hdrRank = 'Rank'.padEnd(8);
   const hdrName = 'Name'.padEnd(12);
   const hdrResult = 'Result'.padEnd(9);
-  const hdrTurns = 'Turns'.padEnd(7);
-  const hdrDiff = 'Difficulty'.padEnd(12);
+  const hdrTurns = 'Turns'.padEnd(9);
   const hdrDate = 'Date'.padEnd(12);
 
-  const header = hdrRank + hdrName + hdrResult + hdrTurns + hdrDiff + hdrDate;
+  const header = hdrRank + hdrName + hdrResult + hdrTurns + hdrDate;
 
   lines.push(tm + C.bright + fgRgb(0, 200, 255) + header + r);
-  lines.push(tm + fgRgb(60, 100, 160) + '─'.repeat(60) + r);
+  lines.push(tm + fgRgb(60, 100, 160) + '─'.repeat(tableWidth) + r);
 
-  if (!scores || scores.length === 0) {
+  // Filter scores for active tab
+  const activeDifficulty = tabs[tabIdx];
+  const filtered = (scores || []).filter(s => s.difficulty === activeDifficulty);
+
+  if (filtered.length === 0) {
     lines.push('');
-    lines.push(centerText(fgRgb(100, 130, 160) + '🌊 No scores recorded yet. 🌊' + r));
+    lines.push(centerText(fgRgb(100, 130, 160) + '🌊 No ' + activeDifficulty.toLowerCase() + ' scores yet. Set sail! 🌊' + r));
+    lines.push('');
   } else {
-    for (let i = 0; i < scores.length; i++) {
-      const s = scores[i];
+    for (let i = 0; i < filtered.length; i++) {
+      const s = filtered[i];
       const rankEmoji = i < 3 ? rankEmojis[i] + ' ' : '   ';
       const rank = (rankEmoji + String(i + 1)).padEnd(8);
       const name = (s.name || 'Unknown').padEnd(12);
       const result = (s.won ? 'WIN' : 'LOSS').padEnd(9);
-      const turns = String(s.turns || 0).padEnd(7);
-      const diff = (s.difficulty || '???').padEnd(12);
+      const turns = String(s.turns || 0).padEnd(9);
       const date = (s.date || '').padEnd(12);
 
       const resultColor = s.won ? (C.bright + fgRgb(0, 220, 100)) : (fgRgb(200, 80, 80));
@@ -862,16 +878,16 @@ function renderHighscores(scores) {
         fgRgb(200, 210, 220) + name + r +
         resultColor + result + r +
         fgRgb(0, 180, 230) + turns + r +
-        fgRgb(180, 120, 255) + diff + r +
         fgRgb(100, 130, 160) + date + r
       );
     }
   }
 
-  lines.push(tm + fgRgb(60, 100, 160) + '─'.repeat(60) + r);
+  lines.push(tm + fgRgb(60, 100, 160) + '─'.repeat(tableWidth) + r);
   lines.push('');
   lines.push(centerText(
-    fgRgb(80, 100, 130) + 'Press any key to return' + r
+    fgRgb(80, 100, 130) + '◄ ► Switch difficulty' + fgRgb(50, 70, 100) + '  │  ' +
+    fgRgb(80, 100, 130) + 'ESC Return' + r
   ));
   lines.push('');
 

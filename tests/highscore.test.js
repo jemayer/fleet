@@ -32,10 +32,31 @@ describe('Highscore', () => {
     assert.strictEqual(scores[1].name, 'A');
   });
 
-  it('limits to top 10 entries', () => {
+  it('limits to top 10 entries per difficulty', () => {
     for (let i = 0; i < 15; i++) {
       hs.save({ name: 'P' + i, won: true, turns: i + 20, difficulty: 'Easy', date: '2026-02-13' });
     }
-    assert.strictEqual(hs.load().length, 10);
+    const easyScores = hs.loadByDifficulty('Easy');
+    assert.strictEqual(easyScores.length, 10);
+  });
+
+  it('keeps scores for different difficulties independently', () => {
+    hs.save({ name: 'A', won: true, turns: 30, difficulty: 'Easy', date: '2026-02-13' });
+    hs.save({ name: 'B', won: true, turns: 40, difficulty: 'Hard', date: '2026-02-13' });
+    assert.strictEqual(hs.loadByDifficulty('Easy').length, 1);
+    assert.strictEqual(hs.loadByDifficulty('Hard').length, 1);
+    assert.strictEqual(hs.loadByDifficulty('Medium').length, 0);
+    assert.strictEqual(hs.load().length, 2);
+  });
+
+  it('caps each difficulty at 10 without affecting others', () => {
+    for (let i = 0; i < 12; i++) {
+      hs.save({ name: 'E' + i, won: true, turns: i + 10, difficulty: 'Easy', date: '2026-02-13' });
+    }
+    for (let i = 0; i < 5; i++) {
+      hs.save({ name: 'H' + i, won: true, turns: i + 10, difficulty: 'Hard', date: '2026-02-13' });
+    }
+    assert.strictEqual(hs.loadByDifficulty('Easy').length, 10);
+    assert.strictEqual(hs.loadByDifficulty('Hard').length, 5);
   });
 });

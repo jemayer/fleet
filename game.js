@@ -40,6 +40,8 @@ class Game {
     this.gameOverMenuIndex = 0;
     this.won = false;
     this.nameEntered = false;
+    // Highscore tab state
+    this.highscoreTab = 1; // default Medium
     // Quit confirmation
     this.confirmQuit = false;
   }
@@ -94,7 +96,7 @@ class Game {
         content = display.renderDifficulty(this.difficultyIndex);
         break;
       case STATES.HIGHSCORES:
-        content = display.renderHighscores(this.highscore.load());
+        content = display.renderHighscores(this.highscore.load(), this.highscoreTab);
         break;
       case STATES.PLACEMENT: {
         const shipType = SHIP_TYPES[this.currentShipIndex];
@@ -195,8 +197,15 @@ class Game {
 
   // --- Highscores ---
   handleHighscores(action) {
-    // Any key returns to title
-    this.state = STATES.TITLE;
+    if (action.action === 'move') {
+      if (action.direction === 'left') this.highscoreTab = Math.max(0, this.highscoreTab - 1);
+      if (action.direction === 'right') this.highscoreTab = Math.min(2, this.highscoreTab + 1);
+      return;
+    }
+    if (action.action === 'back') {
+      this.state = STATES.TITLE;
+      return;
+    }
   }
 
   // --- Ship Placement ---

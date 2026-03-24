@@ -20,8 +20,23 @@ class Highscore {
   save(entry) {
     const scores = this.load();
     scores.push(entry);
-    const sorted = this._sort(scores).slice(0, 10);
-    fs.writeFileSync(this.filePath, JSON.stringify(sorted, null, 2));
+    const sorted = this._sort(scores);
+    // Keep top 10 per difficulty
+    const difficulties = ['Easy', 'Medium', 'Hard'];
+    const capped = [];
+    for (const diff of difficulties) {
+      const diffScores = sorted.filter(s => s.difficulty === diff);
+      capped.push(...diffScores.slice(0, 10));
+    }
+    // Keep any entries with unknown difficulty too
+    const knownDiffs = new Set(difficulties);
+    capped.push(...sorted.filter(s => !knownDiffs.has(s.difficulty)));
+    fs.writeFileSync(this.filePath, JSON.stringify(capped, null, 2));
+  }
+
+  loadByDifficulty(difficulty) {
+    const scores = this.load();
+    return scores.filter(s => s.difficulty === difficulty);
   }
 
   _sort(scores) {
