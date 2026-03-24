@@ -59,13 +59,15 @@ Requires **Node.js 18+**. Zero external dependencies.
 
 ## Difficulty Levels
 
-| Level | AI Behavior |
-|-------|-------------|
-| **Easy** | Fires randomly -- pure luck |
-| **Medium** | Hunts adjacent cells after scoring a hit |
-| **Hard** | Follows ship axis after consecutive hits |
+| Level | Fleet | Islands | AI Behavior |
+|-------|-------|---------|-------------|
+| **Easy** | 6 ships (19 cells) | 4 island clusters | Fires randomly |
+| **Medium** | 5 ships (17 cells) | None | Hunts adjacent cells after a hit |
+| **Hard** | 4 ships (12 cells) | 8 scattered islands | Follows ship axis after consecutive hits |
 
 ## Ships
+
+Ships vary by difficulty. Medium uses the classic fleet:
 
 | Ship | Size |
 |------|------|
@@ -74,6 +76,8 @@ Requires **Node.js 18+**. Zero external dependencies.
 | Cruiser | 3 |
 | Submarine | 3 |
 | Destroyer | 2 |
+
+Easy adds a second Destroyer (size 2). Hard drops the Carrier.
 
 ## Highscores
 
