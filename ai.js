@@ -8,6 +8,11 @@ class AI {
     this.targetQueue = [];        // array of {row, col}
     this.mode = 'hunt';           // 'hunt' | 'target'
     this.hitChain = [];           // consecutive hits for axis detection (Hard)
+    this.islands = new Set();
+  }
+
+  setIslands(islandSet) {
+    this.islands = islandSet || new Set();
   }
 
   /**
@@ -23,7 +28,8 @@ class AI {
         if (
           candidate.row >= 0 && candidate.row < 10 &&
           candidate.col >= 0 && candidate.col < 10 &&
-          !this.shotsFired.has(key)
+          !this.shotsFired.has(key) &&
+          !this.islands.has(key)
         ) {
           return candidate;
         }
@@ -94,7 +100,8 @@ class AI {
       if (
         c.row >= 0 && c.row < 10 &&
         c.col >= 0 && c.col < 10 &&
-        !this.shotsFired.has(`${c.row},${c.col}`)
+        !this.shotsFired.has(`${c.row},${c.col}`) &&
+        !this.islands.has(`${c.row},${c.col}`)
       ) {
         this.targetQueue.push(c);
       }
@@ -122,13 +129,13 @@ class AI {
 
       // Extend left (decreasing col)
       const left = minCol - 1;
-      if (left >= 0 && !this.shotsFired.has(`${row},${left}`)) {
+      if (left >= 0 && !this.shotsFired.has(`${row},${left}`) && !this.islands.has(`${row},${left}`)) {
         this.targetQueue.push({ row, col: left });
       }
 
       // Extend right (increasing col)
       const right = maxCol + 1;
-      if (right < 10 && !this.shotsFired.has(`${row},${right}`)) {
+      if (right < 10 && !this.shotsFired.has(`${row},${right}`) && !this.islands.has(`${row},${right}`)) {
         this.targetQueue.push({ row, col: right });
       }
     } else if (sameCol) {
@@ -140,13 +147,13 @@ class AI {
 
       // Extend up (decreasing row)
       const up = minRow - 1;
-      if (up >= 0 && !this.shotsFired.has(`${up},${col}`)) {
+      if (up >= 0 && !this.shotsFired.has(`${up},${col}`) && !this.islands.has(`${up},${col}`)) {
         this.targetQueue.push({ row: up, col });
       }
 
       // Extend down (increasing row)
       const down = maxRow + 1;
-      if (down < 10 && !this.shotsFired.has(`${down},${col}`)) {
+      if (down < 10 && !this.shotsFired.has(`${down},${col}`) && !this.islands.has(`${down},${col}`)) {
         this.targetQueue.push({ row: down, col });
       }
     }
@@ -160,7 +167,7 @@ class AI {
     const untried = [];
     for (let r = 0; r < 10; r++) {
       for (let c = 0; c < 10; c++) {
-        if (!this.shotsFired.has(`${r},${c}`)) {
+        if (!this.shotsFired.has(`${r},${c}`) && !this.islands.has(`${r},${c}`)) {
           untried.push({ row: r, col: c });
         }
       }

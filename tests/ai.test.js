@@ -120,3 +120,32 @@ describe('AI - Hard', () => {
     assert.strictEqual(next.col, 2);
   });
 });
+
+describe('AI - Island awareness', () => {
+  it('skips island cells when provided', () => {
+    const ai = new AI('easy');
+    const islands = new Set(['0,0', '0,1', '0,2', '0,3']);
+    ai.setIslands(islands);
+    for (let i = 0; i < 50; i++) {
+      const { row, col } = ai.chooseTarget();
+      const key = `${row},${col}`;
+      assert.ok(!islands.has(key), `AI targeted island cell: ${key}`);
+      ai.recordResult(row, col, false, false);
+    }
+  });
+
+  it('skips islands in target queue (medium)', () => {
+    const ai = new AI('medium');
+    const islands = new Set(['4,5']);
+    ai.setIslands(islands);
+    ai.recordResult(5, 5, true, false);
+    const targets = [];
+    for (let i = 0; i < 3; i++) {
+      const t = ai.chooseTarget();
+      if (ai.targetQueue.length === 0 && ai.mode === 'hunt') break;
+      targets.push(`${t.row},${t.col}`);
+      ai.recordResult(t.row, t.col, false, false);
+    }
+    assert.ok(!targets.includes('4,5'), 'should not target island cell');
+  });
+});
