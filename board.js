@@ -6,6 +6,7 @@ class Board {
   static SHIP = 1;
   static MISS = 2;
   static HIT = 3;
+  static ISLAND = 4;
 
   constructor() {
     this.grid = Array.from({ length: 10 }, () => new Array(10).fill(Board.EMPTY));
@@ -42,11 +43,51 @@ class Board {
     return true;
   }
 
+  placeIslands(count, style) {
+    if (count === 0 || style === 'none') return;
+
+    if (style === 'clustered') {
+      for (let i = 0; i < count; i++) {
+        let placed = false;
+        while (!placed) {
+          const row = Math.floor(Math.random() * 9);
+          const col = Math.floor(Math.random() * 9);
+          if (this.grid[row][col] === Board.EMPTY &&
+              this.grid[row][col + 1] === Board.EMPTY &&
+              this.grid[row + 1][col] === Board.EMPTY &&
+              this.grid[row + 1][col + 1] === Board.EMPTY) {
+            this.grid[row][col] = Board.ISLAND;
+            this.grid[row][col + 1] = Board.ISLAND;
+            this.grid[row + 1][col] = Board.ISLAND;
+            this.grid[row + 1][col + 1] = Board.ISLAND;
+            placed = true;
+          }
+        }
+      }
+    } else if (style === 'scattered') {
+      for (let i = 0; i < count; i++) {
+        let placed = false;
+        while (!placed) {
+          const row = Math.floor(Math.random() * 10);
+          const col = Math.floor(Math.random() * 10);
+          if (this.grid[row][col] === Board.EMPTY) {
+            this.grid[row][col] = Board.ISLAND;
+            placed = true;
+          }
+        }
+      }
+    }
+  }
+
   processShot(row, col) {
     const cell = this.grid[row][col];
 
     if (cell === Board.HIT || cell === Board.MISS) {
-      return { hit: false, sunk: false, shipName: null, alreadyShot: true };
+      return { hit: false, sunk: false, shipName: null, alreadyShot: true, isIsland: false };
+    }
+
+    if (cell === Board.ISLAND) {
+      return { hit: false, sunk: false, shipName: null, alreadyShot: false, isIsland: true };
     }
 
     if (cell === Board.SHIP) {
@@ -58,12 +99,13 @@ class Board {
         sunk: ship.isSunk(),
         shipName: ship.name,
         alreadyShot: false,
+        isIsland: false,
       };
     }
 
     // EMPTY cell - miss
     this.grid[row][col] = Board.MISS;
-    return { hit: false, sunk: false, shipName: null, alreadyShot: false };
+    return { hit: false, sunk: false, shipName: null, alreadyShot: false, isIsland: false };
   }
 
   allShipsSunk() {
@@ -71,8 +113,9 @@ class Board {
     return this.ships.every(s => s.isSunk());
   }
 
-  placeShipsRandomly() {
-    for (const { name, size } of SHIP_TYPES) {
+  placeShipsRandomly(shipTypes) {
+    const types = shipTypes || SHIP_TYPES;
+    for (const { name, size } of types) {
       let placed = false;
       while (!placed) {
         const orientation = Math.random() < 0.5 ? 'horizontal' : 'vertical';

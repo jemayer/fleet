@@ -104,4 +104,61 @@ describe('Board', () => {
         if (grid[r][c] === Board.SHIP) shipCells++;
     assert.strictEqual(shipCells, 17);
   });
+
+  it('has ISLAND cell type constant', () => {
+    assert.strictEqual(typeof Board.ISLAND, 'number');
+    assert.notStrictEqual(Board.ISLAND, Board.EMPTY);
+    assert.notStrictEqual(Board.ISLAND, Board.SHIP);
+    assert.notStrictEqual(Board.ISLAND, Board.HIT);
+    assert.notStrictEqual(Board.ISLAND, Board.MISS);
+  });
+
+  it('placeIslands places clustered 2x2 islands', () => {
+    const board = new Board();
+    board.placeIslands(2, 'clustered');
+    let islandCells = 0;
+    const grid = board.getGrid();
+    for (let r = 0; r < 10; r++)
+      for (let c = 0; c < 10; c++)
+        if (grid[r][c] === Board.ISLAND) islandCells++;
+    assert.strictEqual(islandCells, 8);
+  });
+
+  it('placeIslands places scattered single-cell islands', () => {
+    const board = new Board();
+    board.placeIslands(5, 'scattered');
+    let islandCells = 0;
+    const grid = board.getGrid();
+    for (let r = 0; r < 10; r++)
+      for (let c = 0; c < 10; c++)
+        if (grid[r][c] === Board.ISLAND) islandCells++;
+    assert.strictEqual(islandCells, 5);
+  });
+
+  it('rejects ship placement on island cells', () => {
+    const board = new Board();
+    board.getGrid()[0][0] = Board.ISLAND;
+    assert.strictEqual(board.canPlaceShip(2, { row: 0, col: 0 }, 'horizontal'), false);
+  });
+
+  it('processShot on island cell returns isIsland true', () => {
+    const board = new Board();
+    board.getGrid()[3][3] = Board.ISLAND;
+    const result = board.processShot(3, 3);
+    assert.strictEqual(result.hit, false);
+    assert.strictEqual(result.isIsland, true);
+  });
+
+  it('placeShipsRandomly respects island cells', () => {
+    const board = new Board();
+    board.placeIslands(4, 'clustered');
+    board.placeShipsRandomly(SHIP_TYPES);
+    assert.strictEqual(board.getShips().length, 5);
+    const grid = board.getGrid();
+    for (const ship of board.getShips()) {
+      for (const seg of ship.getSegments()) {
+        assert.notStrictEqual(grid[seg.row][seg.col], Board.ISLAND);
+      }
+    }
+  });
 });
