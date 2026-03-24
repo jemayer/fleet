@@ -296,9 +296,9 @@ function renderDifficulty(selectedIndex) {
   const lines = [];
 
   const difficulties = [
-    { name: 'EASY',   emoji: '🌊', desc: 'Forgiving seas — AI shoots randomly.', color: fgRgb(80, 220, 120) },
-    { name: 'MEDIUM', emoji: '⚓', desc: 'Tactical waters — AI hunts near hits.', color: fgRgb(255, 200, 50) },
-    { name: 'HARD',   emoji: '💥', desc: 'Ruthless admiral — AI plays optimally.', color: fgRgb(255, 80, 80) },
+    { name: 'EASY',   emoji: '🌊', desc: '6 ships, island clusters — dense hunting grounds.', color: fgRgb(80, 220, 120) },
+    { name: 'MEDIUM', emoji: '⚓', desc: '5 ships, open ocean — classic Battleship.', color: fgRgb(255, 200, 50) },
+    { name: 'HARD',   emoji: '💥', desc: '4 ships, scattered islands — sparse and ruthless.', color: fgRgb(255, 80, 80) },
   ];
 
   lines.push(renderTitle());
@@ -387,6 +387,9 @@ function renderGrid(grid, options = {}) {
           break;
         case Board.HIT:
           symbol = C.bright + fgRgb(255, 60, 30) + '✖' + r;
+          break;
+        case Board.ISLAND:
+          symbol = fgRgb(139, 105, 20) + '▲' + r;
           break;
         default:
           symbol = fgRgb(50, 60, 80) + '·' + r;
@@ -489,7 +492,7 @@ function renderInventory(ships, label) {
 
 // ─── Placement Screen ────────────────────────────────────────────────────────
 
-function renderPlacement(board, currentShipName, currentShipSize, cursor, orientation, placedCount) {
+function renderPlacement(board, currentShipName, currentShipSize, cursor, orientation, placedCount, totalShips) {
   const C = COLORS;
   const r = C.reset;
   const lines = [];
@@ -554,6 +557,8 @@ function renderPlacement(board, currentShipName, currentShipSize, cursor, orient
         } else {
           symbol = C.bright + fgRgb(180, 200, 220) + '█' + r;
         }
+      } else if (cell === Board.ISLAND) {
+        symbol = fgRgb(139, 105, 20) + '▲' + r;
       } else {
         symbol = fgRgb(40, 80, 150) + '~' + r;
       }
@@ -583,7 +588,7 @@ function renderPlacement(board, currentShipName, currentShipSize, cursor, orient
   ));
   lines.push('');
   lines.push(centerText(
-    C.bright + fgRgb(180, 120, 255) + '⚓ Ships placed: ' + placedCount + '/5' + r
+    C.bright + fgRgb(180, 120, 255) + '⚓ Ships placed: ' + placedCount + '/' + (totalShips || 5) + r
   ));
   lines.push('');
   lines.push(centerText(
